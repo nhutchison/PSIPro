@@ -1,12 +1,3 @@
-// If USB_DEBUG is defined, the Serial port on the USB of the 
-// Pro Micro will be used for communication, and debug output
-// Uncomment this if you want to debug, add new patterns etc,
-// and are working via USB.  Note the brigtness warning below!
-// The normal mode is that the Controller will be connected
-// using the Tx and R pins on the controller to talk to other
-// devices in R2.
-
-
 // Use these settings to customize the PSI animations. 
 //
 
@@ -136,7 +127,10 @@ byte I2CAdress = 22;
 
 
 //Setup Debug stuff
-#define DEBUG
+
+// Uncomment this if you want Debug output.
+//#define DEBUG
+
 #ifdef DEBUG
 //#define DEBUG_PRINT_LN(msg)  Serial.println(msg)
 //#define DEBUG_PRINT(msg)  Serial.print(msg)
