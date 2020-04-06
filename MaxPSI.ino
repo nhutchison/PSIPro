@@ -7,9 +7,13 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.96
+ *  Version 0.97
  *
  *  Version History :
+ *  
+ *  Version 0.97 - 6th April
+ *  Added ability to set Disco Ball on Indefinately.
+ *      Added this as a new sequence, keeping the old Mode 13.  Mode 21 is the new Always on Disco Ball
  *  
  *  Version 0.96 - 5th April 2020
  *  Added address checking for T commands
@@ -145,6 +149,8 @@
  *    Mode 17 - Red on Indefinitely  
  *    Mode 18 - Green on Indefinitely
  *    Mode 19 - LightSaber Battle
+ *    Mode 20 - Star Wars Intro (scrolling yellow "text" getting smaller and dimmer
+ *    Mode 21 - Disco Ball on indefinately.
  *    
  * Most users shouldn't need to change anything below this line. Please see the config.h tab    
  * for user adjustable settings.  
@@ -1510,7 +1516,8 @@ void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color)
     DEBUG_PRINT_LN("Disco Baby!");
     firstTime = false;
     patternRunning = true;
-    globalPatternLoops = loops * 2;
+    if (loops != 0) globalPatternLoops = loops * 2;
+    else globalPatternLoops = 2;
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1551,9 +1558,11 @@ void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color)
     FastLED.show(brightness());
     set_delay(time_delay);
   }
-  
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+
+  if (loops) {
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  }
 }
 
 void lightsaberBattle(unsigned long time_delay)
@@ -1884,6 +1893,7 @@ void runPattern(int pattern) {
       VUMeter(250, 20);
       break;
     case 13:          // 13 - Disco Ball
+      // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
       DiscoBall(150, 30, 3, CRGB::White); //gray /30
       break;
     case 14:          // 14 - Rebel Symbol
@@ -1907,6 +1917,10 @@ void runPattern(int pattern) {
       break;
     case 20:             // 20 - Star Wars Intro Text
       StarWarsIntro(500, 4, 0xC8AA00);
+      break;
+    case 21:          // 13 - Disco Ball - On indefinately
+      // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
+      DiscoBall(150, 0, 3, CRGB::White); //gray /30
       break;
     default:
       // Do nothing
