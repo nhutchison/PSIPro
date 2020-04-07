@@ -11,9 +11,13 @@
  *
  *  Version History :
  *  
- *  Version 0.97 - 6th April
- *  Added ability to set Disco Ball on Indefinately.
- *      Added this as a new sequence, keeping the old Mode 13.  Mode 21 is the new Always on Disco Ball
+ *  Version 0.97 - 7th April 2020
+ *  Added ability to set Disco Ball and VU Meter on Indefinately.
+ *      Mode 13 is the new Always on Disco Ball
+ *      Mode 12 is the timed Disco Ball 
+ *      Mode 92 is VU Meter (always on) to match Logic commanding
+ *      Mode 21 is VU Meter timed
+ *  Restored the fast switch between USB Serial and Tx/Rx Pin Serial
  *  
  *  Version 0.96 - 5th April 2020
  *  Added address checking for T commands
@@ -82,7 +86,7 @@
  *  Serial:
  *
  *  Command T - Trigger a numbered Mode.  Txx where xx is the pattern number below. When using the R2 Touch app, commands
- *              should be in the form @0Tx\r or @0Txx\r
+ *              should be in the form @0Tx\r or @0Txx\r. Please see below for address information for the T command. 
  *  
  *  Command A - Go to Main mode of operation which is Standard Swipe Pattern.
  *              @0A from R2 Touch
@@ -112,45 +116,69 @@
  *               
  *               @xPy from R2 Touch (You don't need the '0' before the x when using the P command. 
  *                                          
+ *                                       ***************************   
  *                                       ********   WARNING ********
+ *                                       ***************************
  *                                       
  *              This PSI CAN DRAW MORE POWER THAN YOUR computer's USB PORT CAN SUPPLY!! When using the USB connection 
  *              on the Pro Micro to power the PSI (during programming for instance) be sure to have the brightness 
  *              POT turned nearly all the way COUNTERCLOCKWISE.  Having the POT turned up too far when plugged into 
  *              USB can damage the Pro Micro and/or your computer's USB port!!!! If you are using the internal brightness
- *              control and are connected to USB, KEEP THIS VALUE LOW, not higher than 20. 
+ *              control and are connected to USB, KEEP THIS VALUE LOW, not higher than 20. The Pro Micro can also be removed
+ *              from the PSI and programmed separately. 
  * 
  *  i2c:
  *
- *  When sending i2c command the Panel Address is defined below to be 22.  The command type and value are needed.  To trigger a
- *  pattern, send character 'T' and the value corresponding to the pattern list below to trigger the corresponding sequence.
- *  Sequences must be terminated with a carriage return (\r).  Using i2c with the R2 Touch app, commands must be sent in hex.
- *  form &220T6\r would be spelled &22,x33,x54,x36,x0D\r
+ *  When sending i2c command the Panel Address is defined on the config.h tab to be 22.  The command type and value are needed.  
+ *  To trigger a pattern, send an address (0 for all, 4 for front, 5 for rear) then the character 'T' and the Mode value corresponding 
+ *  to the pattern list below to trigger the corresponding sequence. Sequences must be terminated with a carriage return (\r).  
+ *  
+ *  Using i2c with the R2 Touch app, commands must be sent in hex. For example, &220T6\r would be spelled &22,x33,x54,x36,x0D\r
+ *  
+ *  Commands:
+ *  
+ *  Address modifiers for "T" commands.  The digit preceeding the T is is the address:
+ *  
+ *  0 is all
+ *  4 is Front PSI
+ *  5 is rear PSI as taken from Marc's Teeces command guide.
+ *  
+ *      Address field is interpreted as follows:
+ *      0 - global address, all displays that support the command are set
+ *      1 - TFLD (Top Front Logic Dislay)
+ *      2 - BFLD (Bottom Front Logic Display)
+ *      3 - RLD  (Rear Logic Display)
+ *      4 - Front PSI
+ *      5 - Rear PSI
+ *      6 - Front Holo (not implemented here)
+ *      7 - Rear Holo  (not implemented here)
+ *      8 - Top Holo   (not implemented here)
  *
- *  Commands
+ *  Command T Modes
  *
- *    Mode 0  - Turn Panel off
+ *    Mode 0  - Turn Panel off (This will also turn stop the Teeces if they share the serial connection and the "0" address is used)
  *    Mode 1  - Default (Swipe) The default mode can be changed on the config.h tab
- *    Mode 2  - Flash (fast flash)
- *    Mode 3  - Alarm (slow flash)
- *    Mode 4  - Short Circuit
- *    Mode 5  - Scream
- *    Mode 6  - Leia Message
- *    Mode 7  - I heart U
- *    Mode 8  - Quarter Panel sweep
+ *    Mode 2  - Flash (fast flash) (4 seconds)
+ *    Mode 3  - Alarm (slow flash) (4 seconds)
+ *    Mode 4  - Short Circuit (10 seconds)
+ *    Mode 5  - Scream (4 seconds)
+ *    Mode 6  - Leia Message (34 seconds)
+ *    Mode 7  - I heart U (10 seconds)
+ *    Mode 8  - Quarter Panel sweep (7 seconds)
  *    Mode 9  - Flashing Red Heart (Front PSI), Pulse Monitor (Rear PSI)
- *    Mode 10 - Star Wars - Title Scroll
- *    Mode 11 - Imperial March
- *    Mode 12 - VU Meter
- *    Mode 13 - Disco Ball
- *    Mode 14 - Rebel Symbol
- *    Mode 15 - Knight Rider
- *    Mode 16 - Test Sequence (white on Indefinitely)
+ *    Mode 10 - Star Wars - Title Scroll (15 seconds)
+ *    Mode 11 - Imperial March (47 seconds)
+ *    Mode 12 - Disco Ball (4 seconds)
+ *    Mode 13 - Disco Ball -Runs Indefinitely
+ *    Mode 14 - Rebel Symbol (5 seconds)
+ *    Mode 15 - Knight Rider (20 seconds)
+ *    Mode 16 - Test Sequence (White on Indefinitely)
  *    Mode 17 - Red on Indefinitely  
  *    Mode 18 - Green on Indefinitely
  *    Mode 19 - LightSaber Battle
- *    Mode 20 - Star Wars Intro (scrolling yellow "text" getting smaller and dimmer
- *    Mode 21 - Disco Ball on indefinately.
+ *    Mode 20 - Star Wars Intro (scrolling yellow "text" getting smaller and dimmer)
+ *    Mode 21 - VU Meter  (4 seconds)
+ *    Mode 92 - VU Meter  -Runs Indefinitely (Spectrum on Teeces)
  *    
  * Most users shouldn't need to change anything below this line. Please see the config.h tab    
  * for user adjustable settings.  
@@ -191,6 +219,9 @@ int level[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};;
 //Serial Stuff
 int lastPSIeventCode     = defaultPattern;
 bool firstTimeCode      = true;
+
+// handle to the Serial object
+HardwareSerial* serialPort;
 
 // Swipe Default pattern stuff
 enum state {
@@ -240,8 +271,18 @@ void setup() {
 #else
   baudrate=2400;
 #endif
-  //Serial.begin(baudrate);
+
+  #ifdef USB_DEBUG
+  // If we want to debug on the USB, then we use Serial
+  Serial.begin(baudrate);
+  serialPort=&Serial;
+  #else
   Serial1.begin(baudrate);
+  serialPort=&Serial1;
+  #endif
+
+  serialPort->begin(baudrate);
+  //Serial1.begin(baudrate);
 
   // READ the default settings from the EEPROM
   byte value;
@@ -1444,7 +1485,8 @@ void VUMeter(unsigned long time_delay, uint8_t loops)
     DEBUG_PRINT_LN("VU Meter");
     firstTime = false;
     patternRunning = true;
-    globalPatternLoops = loops;
+    if (loops != 0) globalPatternLoops = loops;
+    else globalPatternLoops = 2;
     // Clear the display the first time through
     allOFF(true);
 
@@ -1500,9 +1542,11 @@ void VUMeter(unsigned long time_delay, uint8_t loops)
     FastLED.show(brightness());
     set_delay(time_delay);
   }
-  
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+
+  if (loops) {
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  }
 }
 
 //Display a number of random pixels to simulate light bouncing off a disco ball.  Yay 1977!
@@ -1854,19 +1898,19 @@ void runPattern(int pattern) {
       swipe();
       break;
     case 2:             // Flash Panel (4s)
-      flash(0xffffff, 60, 21);
+      flash(0xffffff, 60, 24);
       break;
     case 3:             //  3 = Alarm
-      flash(0xffffff, 125, 13);
+      flash(0xffffff, 125, 15);
       break;
     case 4:              //  4 = Short circuit
-      FadeOut(250, 3);
+      FadeOut(257, 3);
       break;
     case 5:              //  5 = Scream - Note this is the same as Alarm currently!
-      flash(0xffffff, 125, 13);
+      flash(0xffffff, 125, 15);
       break;
     case 6:              //  6 = Leia message (34s)
-      Cylon_Row(0xcccccc, 48, 3, 59); //5
+      Cylon_Row(0xcccccc, 74, 3, 57); //5
       break;
     case 7:              //  7 = I heart U
       i_heart_u(500, 3);
@@ -1887,14 +1931,14 @@ void runPattern(int pattern) {
       Cylon_Row(0xC8AA00, 500, 4, 5);
       break;
     case 11:              //  11 = Imperial March (47s)
-      march(0xffffff, 555, 42);
+      march(0xffffff, 552, 42);
       break;
-    case 12:          // 12 - VU Meter
-      VUMeter(250, 20);
+    case 12:          // 13 - Disco Ball - 4 seconds
+      DiscoBall(150, 30, 3, CRGB::White); //gray /30
       break;
     case 13:          // 13 - Disco Ball
       // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
-      DiscoBall(150, 30, 3, CRGB::White); //gray /30
+      DiscoBall(150, 0, 3, CRGB::White); //gray /30
       break;
     case 14:          // 14 - Rebel Symbol
       // Pass the matrix a main color and a background color
@@ -1904,7 +1948,7 @@ void runPattern(int pattern) {
       Cylon_Col(0xff0000, 250, 1, 5);
       break;
     case 16:        // All LED's On White Indefinitely
-      allON(CRGB::Gray, true);
+      allON(CRGB::White, true);
       break;
     case 17:              //  17 - Turns Panel On Red Indefinitely
       allON(CRGB::Red, true);
@@ -1918,9 +1962,13 @@ void runPattern(int pattern) {
     case 20:             // 20 - Star Wars Intro Text
       StarWarsIntro(500, 4, 0xC8AA00);
       break;
-    case 21:          // 13 - Disco Ball - On indefinately
-      // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
-      DiscoBall(150, 0, 3, CRGB::White); //gray /30
+    case 21:          // 12 - VU Meter (4 seconds).
+      // Set loops to 0 to remain on indefinately.
+      VUMeter(250, 20);
+      break;
+    case 92:          // 12 - VU Meter (On Indefinately).
+      // Set loops to 0 to remain on indefinately.
+      VUMeter(250, 0);
       break;
     default:
       // Do nothing
@@ -1960,19 +2008,19 @@ void receiveEvent(int eventCode) {
 */
 void serialEventRun(void)
 {
-  //if (Serial.available()) serialEvent();
-  if (Serial1.available()) serialEvent();
+  if (serialPort->available()) serialEvent();
+  //if (Serial1.available()) serialEvent();
 }
 
 void serialEvent() {
 
-  //while (Serial.available()) {   
-  while (Serial1.available()) {
+  while (serialPort->available()) {   
+  //while (Serial1.available()) {
 
     DEBUG_PRINT_LN("Serial In");
 
-    //char ch = (char)Serial.read();                     // get the new byte
-    char ch = (char)Serial1.read();                     // get the new byte
+    char ch = (char)serialPort->read();                     // get the new byte
+    //char ch = (char)Serial1.read();                     // get the new byte
     bool command_available;
 
     // New improved command handling
@@ -2194,6 +2242,10 @@ void doPcommand(int address, int argument)
       // Having the POT turned up too far when plugged into USB can damage the Pro Micro
       // and/or your computer's USB port!!!!
       // If you are connected to USB, KEEP THIS VALUE LOW, not higher than 20.
+      // Be aware that if you change the PSI setting to use the internal brightness value, set this back
+      // to 20 prior to plugging the PSI into your USB port!
+      // The Pro Micro can also be removed from the PSI and programmed separately. 
+      
       if (argument > 200) globalBrightnessValue = 200;
       else globalBrightnessValue = argument;
       EEPROM.write(internalBrightnessAddress, globalBrightnessValue);

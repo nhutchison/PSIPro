@@ -129,22 +129,36 @@ byte I2CAdress = 22;
 //Setup Debug stuff
 
 // Uncomment this if you want Debug output.
+// By default debug output is not enabled in
+// the release version
 //#define DEBUG
 
+//Setup Debug stuff
 #ifdef DEBUG
-//#define DEBUG_PRINT_LN(msg)  Serial.println(msg)
-//#define DEBUG_PRINT(msg)  Serial.print(msg)
-#define DEBUG_PRINT_LN(msg)  Serial1.println(msg)
-#define DEBUG_PRINT(msg)  Serial1.print(msg)
+    #define DEBUG_PRINT_LN(msg)  serialPort->println(msg)
+    #define DEBUG_PRINT(msg)  serialPort->print(msg)
 #else
-#define DEBUG_PRINT_LN(msg)
-#define DEBUG_PRINT(msg)
-#endif
-  
-  #define LED_PIN 4
-  #define NUM_LEDS 48
-  #define LEDS_PER_COLUMN 6
-  #define COLUMNS 10
+  #define DEBUG_PRINT_LN(msg)
+  #define DEBUG_PRINT(msg)
+#endif // DEBUG
+
+// If USB_DEBUG is defined, the Serial port on the USB of the 
+// Pro Micro will be used for communication, and debug output
+// Uncomment this if you want to debug, add new patterns etc,
+// and are working via USB.  Note the brigtness warning below!
+// The normal mode is that the Controller will be connected
+// using the Tx and R pins on the controller to talk to other
+// devices in R2.
+// Default is to use the Serial Pins, which are on Serial1
+// Uncommenting the line beow switches to using the USB port
+// and the Serial on the USB.
+
+//#define USB_DEBUG
+
+#define LED_PIN 4
+#define NUM_LEDS 48
+#define LEDS_PER_COLUMN 6
+#define COLUMNS 10
   
   int8_t ledMatrix[COLUMNS][LEDS_PER_COLUMN] = {
     { -1, -1, 23, 24, -1, -1 }, 
