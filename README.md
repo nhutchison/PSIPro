@@ -1,4 +1,4 @@
-# PSIPro Version 0.97 - Released April 7th 2020
+# PSIPro Version 0.98 - Released April 8th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -11,6 +11,15 @@ Pattern Timing Tuning by Malcolm MacKenzie
 Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
+
+ *  Version 0.98 - 8th April
+    *  Added the ability for each sequence to run for a given time.
+        * Rather than try to set the time a pattern runs for by setting the loops, you can
+        * specify the total time the pattern should run for.  To disable the total run time
+        * and use a set number of loops, set the run time parameter to 0.
+    *  Added the ability to set the command duration in seconds via the command.
+        * This only applies to T commands.  
+        * Send the command using 0Tx|y where |y is optional.  y is in seconds.
 
     *  Version 0.97 - 7th April 2020
         *  Added ability to set Disco Ball and VU Meter on Indefinately.

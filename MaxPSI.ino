@@ -7,9 +7,18 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.97
+ *  Version 0.98
  *
  *  Version History :
+ *  
+ *  Version 0.98 - 8th April
+ *  Added the ability for each sequence to run for a given time.
+ *    Rather than try to set the time a pattern runs for by setting the loops, you can
+ *    specify the total time the pattern should run for.  To disable the total run time
+ *    and use a set number of loops, set the run time parameter to 0.
+ *  Added the ability to set the command duration in seconds via the command.
+ *    This only applies to T commands.  
+ *    Send the command using 0Tx|y where |y is optional.  y is in seconds.
  *  
  *  Version 0.97 - 7th April 2020
  *  Added ability to set Disco Ball and VU Meter on Indefinately.
@@ -87,6 +96,9 @@
  *
  *  Command T - Trigger a numbered Mode.  Txx where xx is the pattern number below. When using the R2 Touch app, commands
  *              should be in the form @0Tx\r or @0Txx\r. Please see below for address information for the T command. 
+ *              
+ *              The Optional time parameter can be sent by adding |yy to the T command.  Commands should be in the form
+ *              @0Tx|y.  y is a value in seconds.
  *  
  *  Command A - Go to Main mode of operation which is Standard Swipe Pattern.
  *              @0A from R2 Touch
@@ -213,6 +225,10 @@ bool firstTime;
 bool patternRunning = false;
 uint8_t globalPatternLoops;
 
+// Timing values received from command are stored here.
+bool timingReceived = false;
+unsigned long commandTiming = 0;
+
 // Used for the VU display to store global state ...
 int level[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};;
 
@@ -221,7 +237,7 @@ int lastPSIeventCode     = defaultPattern;
 bool firstTimeCode      = true;
 
 // handle to the Serial object
-HardwareSerial* serialPort;
+Stream* serialPort;
 
 // Swipe Default pattern stuff
 enum state {
@@ -246,7 +262,9 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
 
 // Function prototype for helper functions
 void fill_row(uint8_t row, CRGB color, uint8_t scale_brightness=0);
-void fill_column(uint8_t column, CRGB color, uint8_t scale_brightness=0);                       
+void fill_column(uint8_t column, CRGB color, uint8_t scale_brightness=0);
+void allOFF(bool showLED, unsigned long runtime=0);
+void allON(CRGB color, bool showLED, unsigned long runtime=0);
 
 // Setup
 void setup() {
@@ -272,17 +290,15 @@ void setup() {
   baudrate=2400;
 #endif
 
-  #ifdef USB_DEBUG
+// Setup for Official Pro Micro.  The offical PRO can switch like this.
+#ifdef USB_DEBUG
   // If we want to debug on the USB, then we use Serial
   Serial.begin(baudrate);
   serialPort=&Serial;
-  #else
+#else
   Serial1.begin(baudrate);
   serialPort=&Serial1;
-  #endif
-
-  serialPort->begin(baudrate);
-  //Serial1.begin(baudrate);
+#endif
 
   // READ the default settings from the EEPROM
   byte value;
@@ -343,18 +359,44 @@ void loop()
 // LED Helper Functions //
 //////////////////////////
 
-void allON(CRGB color, bool showLED)
+void allON(CRGB color, bool showLED, unsigned long runtime=0)
 {
-  //DEBUG_PRINT_LN("Turn on all LEDs");
+  if (firstTime) {
+    DEBUG_PRINT_LN("Turn on all LEDs");
+    firstTime = false;
+    patternRunning = true;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
+  }
+  
   fill_solid(leds, NUM_LEDS, color);
   if (showLED) FastLED.show(brightness());
+
+  if ((runtime != 0) || (timingReceived)){
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
-void allOFF(bool showLED)
+void allOFF(bool showLED, unsigned long runtime=0)
 {
+  if (firstTime) {
+    DEBUG_PRINT_LN("All Off");
+    firstTime = false;
+    patternRunning = true;
+    DEBUG_PRINT_LN(runtime);
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
+  }
+  
   //DEBUG_PRINT_LN("LED All Off");
   FastLED.clear();
   if (showLED) FastLED.show();
+
+  if ((runtime != 0) || (timingReceived)) {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
 void fill_column(uint8_t column, CRGB color, uint8_t scale_brightness=0) {
@@ -851,6 +893,7 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
     allOFF(true);
     // Special case where we don't want to use the global timeout!
     if (timeout != 0) set_global_timeout(timeout);
+    if (timingReceived) set_global_timeout(commandTiming);
   }
 
   // First row is easy
@@ -962,7 +1005,7 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
 //////////////////////////////
 
 // Flashes all LED's to the given color.  The time_delay is the delay that the LED is on then Off
-void flash(CRGB color, unsigned long time_delay, int loops) //4 seconds same as alarm Command 0T2
+void flash(CRGB color, unsigned long time_delay, int loops, unsigned long runtime) //4 seconds same as alarm Command 0T2
 {
   if (firstTime) {
     DEBUG_PRINT_LN("Flash");
@@ -971,6 +1014,8 @@ void flash(CRGB color, unsigned long time_delay, int loops) //4 seconds same as 
     ledPatternState = 0;
     // We set loops to double here, because we decrement for each on and each off cycle
     globalPatternLoops = loops * 2;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
   }
 
   updateLed = 0;
@@ -1003,16 +1048,23 @@ void flash(CRGB color, unsigned long time_delay, int loops) //4 seconds same as 
     set_delay(time_delay);
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
-void Cylon_Row(CRGB color, unsigned long time_delay, int type, int loops)
+void Cylon_Row(CRGB color, unsigned long time_delay, int type, int loops, unsigned long runtime)
 {
 
   if (firstTime) {
     DEBUG_PRINT("Cylon Row");
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
   }
 
   switch (type) {
@@ -1039,15 +1091,22 @@ void Cylon_Row(CRGB color, unsigned long time_delay, int type, int loops)
       break;
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
-void Cylon_Col(CRGB color, unsigned long time_delay, int type, int loops)
+void Cylon_Col(CRGB color, unsigned long time_delay, int type, int loops, unsigned long runtime)
 {
   if (firstTime) {
     DEBUG_PRINT("Cylon Col");
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
   }
 
 
@@ -1072,19 +1131,26 @@ void Cylon_Col(CRGB color, unsigned long time_delay, int type, int loops)
       // do nothing
       break;
   }
-
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
 // Displays the message I <heart> U.
-void i_heart_u(unsigned long time_delay, int loops) // 5 seconds command 0T7
+void i_heart_u(unsigned long time_delay, int loops, unsigned long runtime) // 5 seconds command 0T7
 {
   if (firstTime) {
     DEBUG_PRINT_LN("I Heart U");
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1121,18 +1187,25 @@ void i_heart_u(unsigned long time_delay, int loops) // 5 seconds command 0T7
     set_delay(time_delay);
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
 // Displays a flashing heart.
-void red_heart(unsigned long time_delay, int loops) //5 seconds command 0T9
+void red_heart(unsigned long time_delay, int loops, unsigned long runtime) //5 seconds command 0T9
 {
   if (firstTime) {
     DEBUG_PRINT("Flashing Red Heart");
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1169,17 +1242,24 @@ void red_heart(unsigned long time_delay, int loops) //5 seconds command 0T9
     set_delay(time_delay);
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
-void march(CRGB color, unsigned long time_delay, int loops) //47 seconds Command 0T11
+void march(CRGB color, unsigned long time_delay, int loops, unsigned long runtime) //47 seconds Command 0T11
 {
   if (firstTime) {
     DEBUG_PRINT_LN("Imperial March");
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops * 2;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1228,18 +1308,25 @@ void march(CRGB color, unsigned long time_delay, int loops) //47 seconds Command
     set_delay(time_delay);
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
 // Sweeps the panel in a clockwise direction
-void radar(CRGB color, unsigned long time_delay, int loops)
+void radar(CRGB color, unsigned long time_delay, int loops, unsigned long runtime)
 {
   if (firstTime) {
     DEBUG_PRINT_LN("Radar");
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1314,8 +1401,13 @@ void radar(CRGB color, unsigned long time_delay, int loops)
     set_delay(time_delay);
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
 void swipe() {
@@ -1475,7 +1567,7 @@ void FadeOut(unsigned long time_delay, uint8_t loops) {
 }
 
 // Delay, loops, color
-void VUMeter(unsigned long time_delay, uint8_t loops)
+void VUMeter(unsigned long time_delay, uint8_t loops, unsigned long runtime)
 {
   // We use the VU_chart matrix to define the colors used
   // Then we'll simply display as many or as few of the pixels as we want
@@ -1487,6 +1579,8 @@ void VUMeter(unsigned long time_delay, uint8_t loops)
     patternRunning = true;
     if (loops != 0) globalPatternLoops = loops;
     else globalPatternLoops = 2;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     // Clear the display the first time through
     allOFF(true);
 
@@ -1543,14 +1637,19 @@ void VUMeter(unsigned long time_delay, uint8_t loops)
     set_delay(time_delay);
   }
 
-  if (loops) {
-    // Check to see if we have run the loops needed for this pattern
-    loopsDonedoRestoreDefault();
-  }
+  if (runtime == 0){
+    if (loops) {
+      // Check to see if we have run the loops needed for this pattern
+      loopsDonedoRestoreDefault();
+    }
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  } 
 }
 
 //Display a number of random pixels to simulate light bouncing off a disco ball.  Yay 1977!
-void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color)
+void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color, unsigned long runtime)
 {
   int randRow;
   int randCol;
@@ -1562,6 +1661,8 @@ void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color)
     patternRunning = true;
     if (loops != 0) globalPatternLoops = loops * 2;
     else globalPatternLoops = 2;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1603,10 +1704,15 @@ void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color)
     set_delay(time_delay);
   }
 
-  if (loops) {
-    // Check to see if we have run the loops needed for this pattern
-    loopsDonedoRestoreDefault();
-  }
+  if (runtime == 0){
+    if (loops) {
+      // Check to see if we have run the loops needed for this pattern
+      loopsDonedoRestoreDefault();
+    }
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  } 
 }
 
 void lightsaberBattle(unsigned long time_delay)
@@ -1671,7 +1777,7 @@ void lightsaberBattle(unsigned long time_delay)
 }
 
 // Delay, loops, color
-void Pulse(unsigned long time_delay, uint8_t loops)
+void Pulse(unsigned long time_delay, uint8_t loops, unsigned long runtime)
 {
   // We use the VU_chart matrix to define the colors used
   // Then we'll simply display as many or as few of the pixels as we want
@@ -1682,6 +1788,8 @@ void Pulse(unsigned long time_delay, uint8_t loops)
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
@@ -1717,12 +1825,17 @@ void Pulse(unsigned long time_delay, uint8_t loops)
     set_delay(time_delay);
   }
   
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
 }
 
 // Scrolling text getting smaller and dimming as it rises up the screen
-void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color)
+void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color, unsigned long runtime)
 {
 
   if (firstTime) {
@@ -1730,6 +1843,8 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color)
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
+    if (runtime != 0) set_global_timeout(runtime);
+    if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 2;
     // Clear the display the first time through
     allOFF(true);
@@ -1808,10 +1923,13 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color)
     set_delay(time_delay);
   }
 
-  // Check to see if we have run the loops needed for this pattern
-  loopsDonedoRestoreDefault();
-
- //ledMatrix[i][row];
+  if (runtime == 0){
+    // Check to see if we have run the loops needed for this pattern
+    loopsDonedoRestoreDefault();
+  } else {
+    // Check for the global timeout to have expired.
+    globalTimerDonedoRestoreDefault();
+  }
   
 }
 
@@ -1840,7 +1958,6 @@ bool checkDelay()
 void set_global_timeout(unsigned long timeout)
 {
   globalTimeout = millis() + timeout;
-  //DEBUG_PRINT("Set global delay to "); DEBUG_PRINT_LN(doNext);
 }
 
 // Check if the global timeout has expired.
@@ -1898,54 +2015,57 @@ void runPattern(int pattern) {
       swipe();
       break;
     case 2:             // Flash Panel (4s)
-      flash(0xffffff, 60, 24);
+      // color, delay, loops, runtime
+      flash(0xffffff, 60, 24, 4000);
       break;
-    case 3:             //  3 = Alarm
-      flash(0xffffff, 125, 15);
+    case 3:             //  3 = Alarm (4s)
+      // color, delay, loops, runtime
+      flash(0xffffff, 125, 15, 4000);
       break;
     case 4:              //  4 = Short circuit
       FadeOut(257, 3);
       break;
-    case 5:              //  5 = Scream - Note this is the same as Alarm currently!
-      flash(0xffffff, 125, 15);
+    case 5:              //  5 = Scream - Note this is the same as Alarm currently! (4s)
+      // color, delay, loops, runtime
+      flash(0xffffff, 125, 15, 4000);
       break;
     case 6:              //  6 = Leia message (34s)
-      Cylon_Row(0xcccccc, 74, 3, 57); //5
+      Cylon_Row(0xcccccc, 74, 3, 57, 34000);
       break;
     case 7:              //  7 = I heart U
-      i_heart_u(500, 3);
+      i_heart_u(500, 3, 0);
       break;
     case 8:              //  8 = Radar sweep
-      radar(0xff0000, 250, 6);
+      radar(0xff0000, 250, 6, 0);
       break;
     case 9:              //   = Flashing red heart
       if (digitalRead(JUMP_FRONT_REAR)) {
         // Display the beating heart on the front
-        red_heart(500, 3); //3x1s 500ms on, 500ms off
+        red_heart(500, 3, 0); //3x1s 500ms on, 500ms off
       } else {
         // Display the Pulse on the back
-        Pulse(100,3); //12x100ms per loop
+        Pulse(100, 3, 0); //12x100ms per loop
       }
       break;
     case 10:              //  10 = Star Wars Animation
-      Cylon_Row(0xC8AA00, 500, 4, 5);
+      Cylon_Row(0xC8AA00, 500, 4, 5, 0);
       break;
     case 11:              //  11 = Imperial March (47s)
-      march(0xffffff, 552, 42);
+      march(0xffffff, 552, 42, 47000);
       break;
     case 12:          // 13 - Disco Ball - 4 seconds
-      DiscoBall(150, 30, 3, CRGB::White); //gray /30
+      DiscoBall(150, 30, 3, CRGB::White, 4000); //gray /30
       break;
     case 13:          // 13 - Disco Ball
       // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
-      DiscoBall(150, 0, 3, CRGB::White); //gray /30
+      DiscoBall(150, 0, 3, CRGB::White, 0); //gray /30
       break;
     case 14:          // 14 - Rebel Symbol
       // Pass the matrix a main color and a background color
       displayMatrixColor(rebel, 0xff0000, 0x909497, true, 5000);
       break;
     case 15:        // 15 - Knight Rider
-      Cylon_Col(0xff0000, 250, 1, 5);
+      Cylon_Col(0xff0000, 250, 1, 5, 0);
       break;
     case 16:        // All LED's On White Indefinitely
       allON(CRGB::White, true);
@@ -1959,22 +2079,21 @@ void runPattern(int pattern) {
     case 19:              //  19 - Complex animation test, Lightsaber Battle
       lightsaberBattle(250);
       break;
-    case 20:             // 20 - Star Wars Intro Text
-      StarWarsIntro(500, 4, 0xC8AA00);
+    case 20:             // 20 - Star Wars Intro Text (10 seconds)
+      StarWarsIntro(500, 4, 0xC8AA00, 10000);
       break;
     case 21:          // 12 - VU Meter (4 seconds).
       // Set loops to 0 to remain on indefinately.
-      VUMeter(250, 20);
+      VUMeter(250, 20, 4000);
       break;
     case 92:          // 12 - VU Meter (On Indefinately).
       // Set loops to 0 to remain on indefinately.
-      VUMeter(250, 0);
+      VUMeter(250, 0, 0);
       break;
     default:
       // Do nothing
       break;
   }
-
 }
 
 // function that executes whenever data is received from an I2C master
@@ -2009,19 +2128,15 @@ void receiveEvent(int eventCode) {
 void serialEventRun(void)
 {
   if (serialPort->available()) serialEvent();
-  //if (Serial1.available()) serialEvent();
 }
 
 void serialEvent() {
 
-  while (serialPort->available()) {   
-  //while (Serial1.available()) {
+   DEBUG_PRINT_LN("Serial In");
+   bool command_available;
 
-    DEBUG_PRINT_LN("Serial In");
-
-    char ch = (char)serialPort->read();                     // get the new byte
-    //char ch = (char)Serial1.read();                     // get the new byte
-    bool command_available;
+  while (serialPort->available()) {  
+    char ch = (char)serialPort->read();  // get the new byte
 
     // New improved command handling
     command_available=buildCommand(ch, cmdString);  // build command line
@@ -2067,11 +2182,17 @@ byte buildCommand(char ch, char* output_str)
 void parseCommand(char* inputStr)
 {
   byte hasArgument=false;
+  byte hasTiming=false;
   int argument;
   int address;
+  int timing;
   byte pos=0;
+  byte endArg=0;
   byte length=strlen(inputStr);
   if(length<2) goto beep;   // not enough characters
+
+  DEBUG_PRINT(" Here's the input string: ");
+  DEBUG_PRINT_LN(inputStr);
   
   // get the adress, one or two digits
   char addrStr[3];
@@ -2106,15 +2227,43 @@ void parseCommand(char* inputStr)
   // other commands, get the numerical argument after the command character
 
   pos++;                             // need to increment in order to peek ahead of command char
-  if(!length>pos) hasArgument=false; // end of string reached, no arguments
+  if(!length>pos) {hasArgument=false; hasTiming=false;}// end of string reached, no arguments
   else
   {
     for(byte i=pos; i<length; i++)
     {
+      if (inputStr[i] == '|')
+      {
+        //we have a timing parameter for the T command.
+        hasTiming = true;
+        endArg = i;
+        DEBUG_PRINT_LN(" Spotted a timing parameter ");
+        DEBUG_PRINT(" End arg at ");DEBUG_PRINT_LN(endArg);
+        break;
+      }
       if(!isdigit(inputStr[i])) goto beep; // invalid, end of string contains non-numerial arguments
     } 
     argument=atoi(inputStr+pos);    // that's the numerical argument after the command character
     hasArgument=true;
+    
+    if (hasTiming){
+      timing=atoi(inputStr+endArg+1);
+    }
+    else {
+      timing = 0;
+    }
+    /*
+    DEBUG_PRINT(" I think this is the address! ");
+    DEBUG_PRINT_LN(address);
+    DEBUG_PRINT(" I think this is the Command! ");
+    DEBUG_PRINT_LN(inputStr[pos-1]);
+    DEBUG_PRINT(" I think this is the Command Value! ");
+    DEBUG_PRINT_LN(argument);
+    if (hasTiming){
+      DEBUG_PRINT(" I think this is the Timing Value! ");
+      DEBUG_PRINT_LN(timing);
+    }
+    */
   }
   
   // switch on command character
@@ -2122,7 +2271,7 @@ void parseCommand(char* inputStr)
   {
     case 'T':
       if(!hasArgument) goto beep;       // invalid, no argument after command
-      doTcommand(address, argument);      
+      doTcommand(address, argument, timing);      
       break;
     case 'D':                           // D command is weird, does not need an argument, ignore if it has one
     case 'A':                           // A command does the same as D command, so just fall though.
@@ -2157,15 +2306,32 @@ void parseCommand(char* inputStr)
 // Command Executors
 
 // various commands for states and effects
-void doTcommand(int address, int argument)
+void doTcommand(int address, int argument, int timing)
 {
+  /*
   DEBUG_PRINT_LN();
   DEBUG_PRINT("Command: T ");
   DEBUG_PRINT("Address: ");
   DEBUG_PRINT(address);
   DEBUG_PRINT(" Argument: ");
-  DEBUG_PRINT_LN(argument);  
+  DEBUG_PRINT_LN(argument);
+  if (timing){
+    DEBUG_PRINT(" Timing: ");
+    DEBUG_PRINT_LN(timing); 
+  }
+  */
 
+  if (timing != 0){
+    DEBUG_PRINT_LN("Timing Value received in command");
+    timingReceived = true;
+    commandTiming = timing * 1000;
+  }
+  else {
+    DEBUG_PRINT_LN("Disable Global Timing");
+    timingReceived = false;
+    commandTiming = 0;
+  }
+  
   // If we are the front PSI, respond to 0 or 4
   if ((digitalRead(JUMP_FRONT_REAR)) && (address == 4))
   {
@@ -2186,23 +2352,27 @@ void doTcommand(int address, int argument)
 
 void doDcommand(int address)
 {
+  /*
   DEBUG_PRINT_LN();
   DEBUG_PRINT("Command: D ");
   DEBUG_PRINT("Address: ");
   DEBUG_PRINT_LN(address); 
+  */
 
   runPattern(defaultPattern);
 }
 
-// alphabet switching
+// Parameter handling for PSI settings
 void doPcommand(int address, int argument)
 {
+  /*
   DEBUG_PRINT_LN();
   DEBUG_PRINT("Command: P ");
   DEBUG_PRINT("Address: ");
   DEBUG_PRINT(address);
   DEBUG_PRINT(" Argument: ");
   DEBUG_PRINT_LN(argument);  
+  */
   switch(address)
   {
     case 0:

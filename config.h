@@ -1,3 +1,12 @@
+
+// This is Neil's personal setup ... probably don't play with this!
+//#define NEIL_PERSONAL_DEBUG
+#ifdef NEIL_PERSONAL_DEBUG
+  #define DEBUG
+  #define USB_DEBUG
+#endif
+// End Neil's personal setup.
+
 // Use these settings to customize the PSI animations. 
 //
 
@@ -133,7 +142,7 @@ byte I2CAdress = 22;
 // the release version
 //#define DEBUG
 
-//Setup Debug stuff
+//Setup Debug stuff for Real Arduino Pro Micros
 #ifdef DEBUG
     #define DEBUG_PRINT_LN(msg)  serialPort->println(msg)
     #define DEBUG_PRINT(msg)  serialPort->print(msg)
