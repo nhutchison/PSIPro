@@ -7,11 +7,17 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.98
+ *  Version 0.99
  *
  *  Version History :
  *  
- *  Version 0.98 - 8th April
+ *  Version 0.99 - 9th April 2020
+ *  Fixed the Command line setting for per pattern timeout that was added yesterday
+ *    Timings over 32 seconds did not work
+ *    To set the pattern as "always On" Set the timing parameter to 256 which will
+ *    run the pattern for 16 hours - I'll call that good enough for always on!
+ *  
+ *  Version 0.98 - 8th April 2020
  *  Added the ability for each sequence to run for a given time.
  *    Rather than try to set the time a pattern runs for by setting the loops, you can
  *    specify the total time the pattern should run for.  To disable the total run time
@@ -365,7 +371,7 @@ void allON(CRGB color, bool showLED, unsigned long runtime=0)
     DEBUG_PRINT_LN("Turn on all LEDs");
     firstTime = false;
     patternRunning = true;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
   
@@ -385,7 +391,7 @@ void allOFF(bool showLED, unsigned long runtime=0)
     firstTime = false;
     patternRunning = true;
     DEBUG_PRINT_LN(runtime);
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
   
@@ -879,7 +885,7 @@ void scanColLeftRight(unsigned long time_delay, int start_row, CRGB color, bool 
 // Display a matrix using the byte array.  Colours are defined so that
 // if the matrix has a 1, we use fgcolor, and 0 is bgcolor.
 // Optionally colors 2,3,4,5,6,7,8 (allowing a total of nine colours to be used in a pattern.
-void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool displayMe, unsigned long timeout, 
+void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool displayMe, unsigned long runtime, 
                         CRGB color2=0x000000, CRGB color3=0x000000, CRGB color4=0x000000, CRGB color5=0x000000,
                         CRGB color6=0x000000, CRGB color7=0x000000, CRGB color8=0x000000)
 {
@@ -892,7 +898,7 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
     patternRunning = true;
     allOFF(true);
     // Special case where we don't want to use the global timeout!
-    if (timeout != 0) set_global_timeout(timeout);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
 
@@ -995,7 +1001,7 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
 
   if (displayMe) FastLED.show(brightness());
 
-  if (timeout != 0) {
+  if (runtime != 0) {
     globalTimerDonedoRestoreDefault();
   }
 }
@@ -1014,7 +1020,7 @@ void flash(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
     ledPatternState = 0;
     // We set loops to double here, because we decrement for each on and each off cycle
     globalPatternLoops = loops * 2;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
 
@@ -1048,7 +1054,7 @@ void flash(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1063,7 +1069,7 @@ void Cylon_Row(CRGB color, unsigned long time_delay, int type, int loops, unsign
   if (firstTime) {
     DEBUG_PRINT("Cylon Row");
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
 
@@ -1091,7 +1097,7 @@ void Cylon_Row(CRGB color, unsigned long time_delay, int type, int loops, unsign
       break;
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1105,7 +1111,7 @@ void Cylon_Col(CRGB color, unsigned long time_delay, int type, int loops, unsign
   if (firstTime) {
     DEBUG_PRINT("Cylon Col");
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
 
@@ -1132,7 +1138,7 @@ void Cylon_Col(CRGB color, unsigned long time_delay, int type, int loops, unsign
       break;
   }
   
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1149,7 +1155,7 @@ void i_heart_u(unsigned long time_delay, int loops, unsigned long runtime) // 5 
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
@@ -1187,7 +1193,7 @@ void i_heart_u(unsigned long time_delay, int loops, unsigned long runtime) // 5 
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1204,7 +1210,7 @@ void red_heart(unsigned long time_delay, int loops, unsigned long runtime) //5 s
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
@@ -1242,7 +1248,7 @@ void red_heart(unsigned long time_delay, int loops, unsigned long runtime) //5 s
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1258,7 +1264,7 @@ void march(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops * 2;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
@@ -1308,10 +1314,10 @@ void march(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
-  } else {
+  } else if (timingReceived) {
     // Check for the global timeout to have expired.
     globalTimerDonedoRestoreDefault();
   }
@@ -1325,7 +1331,7 @@ void radar(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
@@ -1401,7 +1407,7 @@ void radar(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1579,7 +1585,7 @@ void VUMeter(unsigned long time_delay, uint8_t loops, unsigned long runtime)
     patternRunning = true;
     if (loops != 0) globalPatternLoops = loops;
     else globalPatternLoops = 2;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     // Clear the display the first time through
     allOFF(true);
@@ -1637,7 +1643,7 @@ void VUMeter(unsigned long time_delay, uint8_t loops, unsigned long runtime)
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     if (loops) {
       // Check to see if we have run the loops needed for this pattern
       loopsDonedoRestoreDefault();
@@ -1661,7 +1667,7 @@ void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color,
     patternRunning = true;
     if (loops != 0) globalPatternLoops = loops * 2;
     else globalPatternLoops = 2;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
@@ -1704,7 +1710,7 @@ void DiscoBall(unsigned long time_delay, int loops, int numSparkles, CRGB color,
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     if (loops) {
       // Check to see if we have run the loops needed for this pattern
       loopsDonedoRestoreDefault();
@@ -1788,7 +1794,7 @@ void Pulse(unsigned long time_delay, uint8_t loops, unsigned long runtime)
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 0;
     // Clear the display the first time through
@@ -1825,7 +1831,7 @@ void Pulse(unsigned long time_delay, uint8_t loops, unsigned long runtime)
     set_delay(time_delay);
   }
   
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1843,7 +1849,7 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color, unsigned
     firstTime = false;
     patternRunning = true;
     globalPatternLoops = loops;
-    if (runtime != 0) set_global_timeout(runtime);
+    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 2;
     // Clear the display the first time through
@@ -1923,7 +1929,7 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color, unsigned
     set_delay(time_delay);
   }
 
-  if (runtime == 0){
+  if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
   } else {
@@ -1957,7 +1963,13 @@ bool checkDelay()
 //set the global pattern timeout
 void set_global_timeout(unsigned long timeout)
 {
-  globalTimeout = millis() + timeout;
+  // use 256 to set as "always on"
+  // 256 is already 4 hours, but multiply this up to 16 hours!
+  if (timeout == 256) timeout *= 4;
+  globalTimeout = millis() + (timeout * 1000);
+  DEBUG_PRINT("Current time "); DEBUG_PRINT_LN(millis());
+  DEBUG_PRINT("Timeout received "); DEBUG_PRINT(timeout);
+  DEBUG_PRINT("End time Timeout "); DEBUG_PRINT_LN(globalTimeout);
 }
 
 // Check if the global timeout has expired.
@@ -1966,7 +1978,10 @@ void set_global_timeout(unsigned long timeout)
 bool globalTimeoutExpired()
 {
   bool timerExpired = false;
-  if ((millis() >= globalTimeout) && (!alwaysOn)) timerExpired = true;
+  if ((millis() >= globalTimeout) && (!alwaysOn)){ 
+    timerExpired = true;
+    DEBUG_PRINT("Global Timer Expired at  "); DEBUG_PRINT_LN(millis());
+  }
   return timerExpired;
 }
 
@@ -2016,21 +2031,21 @@ void runPattern(int pattern) {
       break;
     case 2:             // Flash Panel (4s)
       // color, delay, loops, runtime
-      flash(0xffffff, 60, 24, 4000);
+      flash(0xffffff, 60, 24, 4);
       break;
     case 3:             //  3 = Alarm (4s)
       // color, delay, loops, runtime
-      flash(0xffffff, 125, 15, 4000);
+      flash(0xffffff, 125, 15, 4);
       break;
     case 4:              //  4 = Short circuit
       FadeOut(257, 3);
       break;
     case 5:              //  5 = Scream - Note this is the same as Alarm currently! (4s)
       // color, delay, loops, runtime
-      flash(0xffffff, 125, 15, 4000);
+      flash(0xffffff, 125, 15, 4);
       break;
     case 6:              //  6 = Leia message (34s)
-      Cylon_Row(0xcccccc, 74, 3, 57, 34000);
+      Cylon_Row(0xcccccc, 74, 3, 57, 34);
       break;
     case 7:              //  7 = I heart U
       i_heart_u(500, 3, 0);
@@ -2051,10 +2066,10 @@ void runPattern(int pattern) {
       Cylon_Row(0xC8AA00, 500, 4, 5, 0);
       break;
     case 11:              //  11 = Imperial March (47s)
-      march(0xffffff, 552, 42, 47000);
+      march(0xffffff, 552, 42, 47);
       break;
     case 12:          // 13 - Disco Ball - 4 seconds
-      DiscoBall(150, 30, 3, CRGB::White, 4000); //gray /30
+      DiscoBall(150, 30, 3, CRGB::White, 4); //gray /30
       break;
     case 13:          // 13 - Disco Ball
       // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
@@ -2062,7 +2077,7 @@ void runPattern(int pattern) {
       break;
     case 14:          // 14 - Rebel Symbol
       // Pass the matrix a main color and a background color
-      displayMatrixColor(rebel, 0xff0000, 0x909497, true, 5000);
+      displayMatrixColor(rebel, 0xff0000, 0x909497, true, 5);
       break;
     case 15:        // 15 - Knight Rider
       Cylon_Col(0xff0000, 250, 1, 5, 0);
@@ -2080,11 +2095,11 @@ void runPattern(int pattern) {
       lightsaberBattle(250);
       break;
     case 20:             // 20 - Star Wars Intro Text (10 seconds)
-      StarWarsIntro(500, 4, 0xC8AA00, 10000);
+      StarWarsIntro(500, 4, 0xC8AA00, 10);
       break;
     case 21:          // 12 - VU Meter (4 seconds).
       // Set loops to 0 to remain on indefinately.
-      VUMeter(250, 20, 4000);
+      VUMeter(250, 20, 4);
       break;
     case 92:          // 12 - VU Meter (On Indefinately).
       // Set loops to 0 to remain on indefinately.
@@ -2237,8 +2252,6 @@ void parseCommand(char* inputStr)
         //we have a timing parameter for the T command.
         hasTiming = true;
         endArg = i;
-        DEBUG_PRINT_LN(" Spotted a timing parameter ");
-        DEBUG_PRINT(" End arg at ");DEBUG_PRINT_LN(endArg);
         break;
       }
       if(!isdigit(inputStr[i])) goto beep; // invalid, end of string contains non-numerial arguments
@@ -2324,7 +2337,7 @@ void doTcommand(int address, int argument, int timing)
   if (timing != 0){
     DEBUG_PRINT_LN("Timing Value received in command");
     timingReceived = true;
-    commandTiming = timing * 1000;
+    commandTiming = timing;
   }
   else {
     DEBUG_PRINT_LN("Disable Global Timing");
@@ -2416,7 +2429,7 @@ void doPcommand(int address, int argument)
       // to 20 prior to plugging the PSI into your USB port!
       // The Pro Micro can also be removed from the PSI and programmed separately. 
       
-      if (argument > 200) globalBrightnessValue = 200;
+      if (argument > 175) globalBrightnessValue = 175;
       else globalBrightnessValue = argument;
       EEPROM.write(internalBrightnessAddress, globalBrightnessValue);
       

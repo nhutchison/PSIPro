@@ -1,12 +1,3 @@
-
-// This is Neil's personal setup ... probably don't play with this!
-//#define NEIL_PERSONAL_DEBUG
-#ifdef NEIL_PERSONAL_DEBUG
-  #define DEBUG
-  #define USB_DEBUG
-#endif
-// End Neil's personal setup.
-
 // Use these settings to customize the PSI animations. 
 //
 
@@ -134,6 +125,13 @@ byte I2CAdress = 22;
 // 
 
 
+// This is Neil's personal setup ... probably don't play with this!
+//#define NEIL_PERSONAL_DEBUG
+#ifdef NEIL_PERSONAL_DEBUG
+  #define DEBUG       // Prints Debug Strings to help debugging
+  #define USB_DEBUG   // Sets the Serial to use the USB port for sending and receiving commands instead of the TxRx on the board.
+#endif
+// End Neil's personal setup.
 
 //Setup Debug stuff
 
