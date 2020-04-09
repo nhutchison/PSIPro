@@ -187,7 +187,9 @@ byte I2CAdress = 22;
 char cmdString[CMD_MAX_LENGTH];
 
 // POT Averager
-#define POT_AVG_SIZE 10
+#define POT_AVG_SIZE 30
+// Change this if you get flicker.  A larger number will reduce POT noise.
+#define POT_VARIANCE_LEVEL 2
 uint8_t POTReadings[POT_AVG_SIZE];
 uint8_t POTIndex = 0;
 uint8_t POTSum = 0;

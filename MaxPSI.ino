@@ -7,11 +7,11 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.99_1
+ *  Version 0.99_2
  *
  *  Version History :
  *  
- *  Version 0.99_1 - 9th April 2020
+ *  Version 0.99_2 - 9th April 2020
  *  Fixed the Command line setting for per pattern timeout that was added yesterday
  *    Timings over 32 seconds did not work
  *    To set the pattern as "always On" Set the timing parameter to 256 which will
@@ -217,6 +217,9 @@ CRGB leds[NUM_LEDS];
 // Brightness control
 bool internalBrightness = false;
 uint8_t globalBrightnessValue = 20; // Set to a default of 20.  This is overridden in the P command or read from EEPROM.
+uint8_t previousglobalPOTaverage = 0;
+uint8_t tempglobalPOTaverage = 10;
+uint8_t globalPOTaverage = 10; // Used to store the POT average for brightness setting with the POT.
 
 // Command loop processing times
 unsigned long previousMillis = 0;
@@ -345,6 +348,7 @@ void loop()
 {
   // Get current time.
   unsigned long currentMillis = millis();
+  uint8_t delta;
 
   if (currentMillis - previousMillis > interval)
   {
@@ -360,7 +364,18 @@ void loop()
       lastPSIeventCode == defaultPattern;
       runPattern(lastPSIeventCode);
     }
+
+    // Grab the POT Average value.
+    tempglobalPOTaverage = averagePOT();
+  
+    delta = (tempglobalPOTaverage >= previousglobalPOTaverage) ? tempglobalPOTaverage - previousglobalPOTaverage : previousglobalPOTaverage - tempglobalPOTaverage;
+    if (delta > POT_VARIANCE_LEVEL){
+      previousglobalPOTaverage = tempglobalPOTaverage;
+      globalPOTaverage = tempglobalPOTaverage;
+      DEBUG_PRINT("Updating POT to"); DEBUG_PRINT_LN(globalPOTaverage);
+    }
   }
+
 }
 
 //////////////////////////
@@ -2447,7 +2462,8 @@ void doPcommand(int address, int argument)
 // This is where we'll read from the pot, etc
 uint8_t brightness() {
   //LED brightness is capped at 200 (out of 255) to reduce heat and extend life of LEDs. 
-  if (!internalBrightness) return averagePOT(); 
+  //if (!internalBrightness) return globalPOTaverage; 
+  if (!internalBrightness) return map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
   else return globalBrightnessValue;
 }
 
