@@ -186,6 +186,12 @@ byte I2CAdress = 22;
 // memory for command string processing
 char cmdString[CMD_MAX_LENGTH];
 
+// POT Averager
+#define POT_AVG_SIZE 10
+uint8_t POTReadings[POT_AVG_SIZE];
+uint8_t POTIndex = 0;
+uint8_t POTSum = 0;
+uint8_t POTCount = 0;
 
 // EEPROM SETTINGS
 int alwaysOnAddress = 0;

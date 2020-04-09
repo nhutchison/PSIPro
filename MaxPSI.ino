@@ -7,15 +7,17 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.99
+ *  Version 0.99_1
  *
  *  Version History :
  *  
- *  Version 0.99 - 9th April 2020
+ *  Version 0.99_1 - 9th April 2020
  *  Fixed the Command line setting for per pattern timeout that was added yesterday
  *    Timings over 32 seconds did not work
  *    To set the pattern as "always On" Set the timing parameter to 256 which will
  *    run the pattern for 16 hours - I'll call that good enough for always on!
+ *  Added Firmware Average for the POT readings.  This works around the issue of not
+ *  having a resitor on the POT.
  *  
  *  Version 0.98 - 8th April 2020
  *  Added the ability for each sequence to run for a given time.
@@ -236,7 +238,7 @@ bool timingReceived = false;
 unsigned long commandTiming = 0;
 
 // Used for the VU display to store global state ...
-int level[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};;
+int level[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 //Serial Stuff
 int lastPSIeventCode     = defaultPattern;
@@ -2445,6 +2447,27 @@ void doPcommand(int address, int argument)
 // This is where we'll read from the pot, etc
 uint8_t brightness() {
   //LED brightness is capped at 200 (out of 255) to reduce heat and extend life of LEDs. 
-  if (!internalBrightness) return map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200); 
+  if (!internalBrightness) return averagePOT(); 
   else return globalBrightnessValue;
+}
+
+// Firmware Routine to average the value received from the POT so that the external resistor isn't needed
+// Early HW Control boards did not have a resistor across the POT.
+// WARNING - DO NOT PUT DEBUG OUTPUT IN THIS FUNCTION, YOU WILL CRASH THE BOARDS!
+uint8_t averagePOT() {
+
+  uint8_t calculated_average;
+
+  POTSum -= POTReadings[POTIndex];
+  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
+  POTSum += POTReadings[POTIndex];
+    
+  POTIndex++;
+  POTIndex = POTIndex % POT_AVG_SIZE;
+
+  if (POTCount < POT_AVG_SIZE) POTCount++;
+
+  calculated_average = POTSum / POTCount;
+
+  return calculated_average;
 }

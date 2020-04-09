@@ -1,4 +1,4 @@
-# PSIPro Version 0.99 - Released April 9th 2020
+# PSIPro Version 0.99_1 - Released April 9th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -12,11 +12,13 @@ Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
 
-    * Version 0.99 - 9th April 2020
+    * Version 0.99_1 - 9th April 2020
         * Fixed the Command line setting for per pattern timeout that was added yesterday
             * Timings over 32 seconds did not work
             * To set the pattern as "always On" Set the timing parameter to 256 which will
             * run the pattern for 16 hours - I'll call that good enough for always on!
+         *  Added Firmware Average for the POT readings.  This works around the issue of not 
+             having a resitor on the POT.
 
     *  Version 0.98 - 8th April 2020
        *  Added the ability for each sequence to run for a given time.
