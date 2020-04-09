@@ -190,9 +190,9 @@ char cmdString[CMD_MAX_LENGTH];
 #define POT_AVG_SIZE 30
 // Change this if you get flicker.  A larger number will reduce POT noise.
 #define POT_VARIANCE_LEVEL 2
-uint8_t POTReadings[POT_AVG_SIZE];
+uint16_t POTReadings[POT_AVG_SIZE];
 uint8_t POTIndex = 0;
-uint8_t POTSum = 0;
+unsigned long POTSum = 0;
 uint8_t POTCount = 0;
 
 // EEPROM SETTINGS

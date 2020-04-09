@@ -7,11 +7,11 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.99_2
+ *  Version 0.99_3
  *
  *  Version History :
  *  
- *  Version 0.99_2 - 9th April 2020
+ *  Version 0.99_3 - 9th April 2020
  *  Fixed the Command line setting for per pattern timeout that was added yesterday
  *    Timings over 32 seconds did not work
  *    To set the pattern as "always On" Set the timing parameter to 256 which will
@@ -366,13 +366,13 @@ void loop()
     }
 
     // Grab the POT Average value.
-    tempglobalPOTaverage = averagePOT();
-  
+    tempglobalPOTaverage = map(averagePOT(), 0, 1024, 0, 200);
     delta = (tempglobalPOTaverage >= previousglobalPOTaverage) ? tempglobalPOTaverage - previousglobalPOTaverage : previousglobalPOTaverage - tempglobalPOTaverage;
+    
+    // Allow you to debounce the POT :D
     if (delta > POT_VARIANCE_LEVEL){
       previousglobalPOTaverage = tempglobalPOTaverage;
       globalPOTaverage = tempglobalPOTaverage;
-      DEBUG_PRINT("Updating POT to"); DEBUG_PRINT_LN(globalPOTaverage);
     }
   }
 
@@ -2462,7 +2462,7 @@ void doPcommand(int address, int argument)
 // This is where we'll read from the pot, etc
 uint8_t brightness() {
   //LED brightness is capped at 200 (out of 255) to reduce heat and extend life of LEDs. 
-  if (!internalBrightness) return globalPOTaverage; 
+  if (!internalBrightness) return globalPOTaverage;
   else return globalBrightnessValue;
 }
 
@@ -2471,18 +2471,17 @@ uint8_t brightness() {
 // WARNING - DO NOT PUT DEBUG OUTPUT IN THIS FUNCTION, YOU WILL CRASH THE BOARDS!
 uint8_t averagePOT() {
 
-  uint8_t calculated_average;
-
+  int calculated_average;
+  
   POTSum -= POTReadings[POTIndex];
-  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
+  POTReadings[POTIndex] = analogRead(POT_BRIGHT_PIN);
+
   POTSum += POTReadings[POTIndex];
     
   POTIndex++;
   POTIndex = POTIndex % POT_AVG_SIZE;
 
-  if (POTCount < POT_AVG_SIZE) POTCount++;
-
-  calculated_average = POTSum / POTCount;
+  calculated_average = POTSum / POT_AVG_SIZE;
 
   return calculated_average;
 }
