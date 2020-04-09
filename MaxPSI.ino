@@ -2462,8 +2462,7 @@ void doPcommand(int address, int argument)
 // This is where we'll read from the pot, etc
 uint8_t brightness() {
   //LED brightness is capped at 200 (out of 255) to reduce heat and extend life of LEDs. 
-  //if (!internalBrightness) return globalPOTaverage; 
-  if (!internalBrightness) return map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
+  if (!internalBrightness) return globalPOTaverage; 
   else return globalBrightnessValue;
 }
 
