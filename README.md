@@ -1,4 +1,4 @@
-# PSIPro Version 0.99_3 - Released April 9th 2020
+# PSIPro Version 0.99_4 - Released April 10th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -12,8 +12,8 @@ Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
 
-    * Version 0.99_3 - 9th April 2020
-        * Fixed the Command line setting for per pattern timeout that was added yesterday
+    * Version 0.99_4 - 9th April 2020
+        * Fixed the Command line setting for per pattern timeout that was added
             * Timings over 32 seconds did not work
             * To set the pattern as "always On" Set the timing parameter to 256 which will
             * run the pattern for 16 hours - I'll call that good enough for always on!

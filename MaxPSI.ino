@@ -7,12 +7,12 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.99_3
+ *  Version 0.99_4
  *
  *  Version History :
  *  
- *  Version 0.99_3 - 9th April 2020
- *  Fixed the Command line setting for per pattern timeout that was added yesterday
+ *  Version 0.99_4 - 10th April 2020
+ *  Fixed the Command line setting for per pattern timeout that was added
  *    Timings over 32 seconds did not work
  *    To set the pattern as "always On" Set the timing parameter to 256 which will
  *    run the pattern for 16 hours - I'll call that good enough for always on!
@@ -366,7 +366,7 @@ void loop()
     }
 
     // Grab the POT Average value.
-    tempglobalPOTaverage = map(averagePOT(), 0, 1024, 0, 200);
+    tempglobalPOTaverage = averagePOT();
     delta = (tempglobalPOTaverage >= previousglobalPOTaverage) ? tempglobalPOTaverage - previousglobalPOTaverage : previousglobalPOTaverage - tempglobalPOTaverage;
     
     // Allow you to debounce the POT :D
@@ -2470,18 +2470,15 @@ uint8_t brightness() {
 // Early HW Control boards did not have a resistor across the POT.
 // WARNING - DO NOT PUT DEBUG OUTPUT IN THIS FUNCTION, YOU WILL CRASH THE BOARDS!
 uint8_t averagePOT() {
-
-  int calculated_average;
   
+  // Calculate the Rolling Sum
   POTSum -= POTReadings[POTIndex];
-  POTReadings[POTIndex] = analogRead(POT_BRIGHT_PIN);
-
+  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
   POTSum += POTReadings[POTIndex];
-    
+
+  // Adjust the index so we maintain a circular buffer.
   POTIndex++;
   POTIndex = POTIndex % POT_AVG_SIZE;
 
-  calculated_average = POTSum / POT_AVG_SIZE;
-
-  return calculated_average;
+  return POTSum / POT_AVG_SIZE;
 }
