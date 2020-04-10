@@ -7,9 +7,12 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.99_4
+ *  Version 0.99_5
  *
  *  Version History :
+ *  
+ *  Version 0.99_5 - 10th April 2020
+ *    Renamed USB_DEBUG to USB_SERIAL
  *  
  *  Version 0.99_4 - 10th April 2020
  *  Fixed the Command line setting for per pattern timeout that was added
@@ -82,8 +85,8 @@
  *  Added Lightsaber Battle animation
  *  Added Pulse for rear logic dsiplay on T9
  *  Updated JawaLite Commanding on Serial to be 0Txx format
- *  Added the ability to change the serial port by defining USB_DEBUG.  
- *    Uncomment #define USB_DEBUG for serial comunications using Tx and Rx (removed again)
+ *  Added the ability to change the serial port by defining USB_SERIAL.  
+ *    Uncomment #define USB_SERIAL for serial comunications using Tx and Rx (removed again)
  *  Set the default behavior for unrecognised commands to just keep running the swipe pattern.
  *  Configuration data moved to config.h rather than being scattered.
  *
@@ -302,7 +305,7 @@ void setup() {
 #endif
 
 // Setup for Official Pro Micro.  The offical PRO can switch like this.
-#ifdef USB_DEBUG
+#ifdef USB_SERIAL
   // If we want to debug on the USB, then we use Serial
   Serial.begin(baudrate);
   serialPort=&Serial;

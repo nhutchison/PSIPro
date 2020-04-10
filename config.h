@@ -1,3 +1,16 @@
+// If USB_SERIAL is defined, the Serial port on the USB of the 
+// Pro Micro will be used for communication, and debug output
+// Uncomment this if you want to debug, add new patterns etc,
+// and are working via USB.  Note the brigtness warning below!
+// The normal mode is that the Controller will be connected
+// using the Tx and R pins on the controller to talk to other
+// devices in R2.
+// Default is to use the Serial Pins, which are on Serial1
+// Uncommenting the line beow switches to using the USB port
+// and the Serial on the USB.
+
+//#define USB_SERIAL
+
 // Use these settings to customize the PSI animations. 
 //
 
@@ -129,7 +142,7 @@ byte I2CAdress = 22;
 //#define NEIL_PERSONAL_DEBUG
 #ifdef NEIL_PERSONAL_DEBUG
   #define DEBUG       // Prints Debug Strings to help debugging
-  #define USB_DEBUG   // Sets the Serial to use the USB port for sending and receiving commands instead of the TxRx on the board.
+  #define USB_SERIAL   // Sets the Serial to use the USB port for sending and receiving commands instead of the TxRx on the board.
 #endif
 // End Neil's personal setup.
 
@@ -148,19 +161,6 @@ byte I2CAdress = 22;
   #define DEBUG_PRINT_LN(msg)
   #define DEBUG_PRINT(msg)
 #endif // DEBUG
-
-// If USB_DEBUG is defined, the Serial port on the USB of the 
-// Pro Micro will be used for communication, and debug output
-// Uncomment this if you want to debug, add new patterns etc,
-// and are working via USB.  Note the brigtness warning below!
-// The normal mode is that the Controller will be connected
-// using the Tx and R pins on the controller to talk to other
-// devices in R2.
-// Default is to use the Serial Pins, which are on Serial1
-// Uncommenting the line beow switches to using the USB port
-// and the Serial on the USB.
-
-//#define USB_DEBUG
 
 #define LED_PIN 4
 #define NUM_LEDS 48

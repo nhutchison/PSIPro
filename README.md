@@ -1,4 +1,4 @@
-# PSIPro Version 0.99_4 - Released April 10th 2020
+# PSIPro Version 0.99_5 - Released April 10th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -11,6 +11,9 @@ Pattern Timing Tuning by Malcolm MacKenzie
 Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
+   
+    * Version 0.99_5 - 10th April 2020
+	* Renamed USB_DEBUG to USB_SERIAL
 
     * Version 0.99_4 - 9th April 2020
         * Fixed the Command line setting for per pattern timeout that was added
