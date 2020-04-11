@@ -1,3 +1,5 @@
+// Release version 1.0
+
 // If USB_SERIAL is defined, the Serial port on the USB of the 
 // Pro Micro will be used for communication, and debug output
 // Uncomment this if you want to debug, add new patterns etc,

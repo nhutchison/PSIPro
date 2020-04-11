@@ -7,9 +7,13 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 0.99_5
+ *  Version 1.0
  *
  *  Version History :
+ *  
+ *  Version 1.0 - 11th April 2020
+ *    Added 3Pyy command to set brightness without saving to EEPROM
+ *    Limit the Max LED Brightness to 175 to preserve the LED Life.
  *  
  *  Version 0.99_5 - 10th April 2020
  *    Renamed USB_DEBUG to USB_SERIAL
@@ -136,6 +140,12 @@
  *                  y is a value between 0 (off) and 255 (max brightness) This value
  *                  is saved to the EPROM and will persist after power down. 
  *                  for example:  2Py or 2Pyy or 2Pyyy
+ *                  
+ *                If x is 3, Set the internal brighness value, overriding the POT, but do not save to EEPROM.
+ *                  3P0 will restore the brightness to it's previous value.  If that was POT control, the POT setting
+ *                  will be used, it if was internal brightness, then the previous globla internal brigtness witll be used.
+ *                  3Pyyy will set the brightness in the range 1 to 175.  Values over 175 will be limited to 175 to preserve
+ *                  the life of the LED's.
  *               
  *               @xPy from R2 Touch (You don't need the '0' before the x when using the P command. 
  *                                          
@@ -219,7 +229,9 @@ CRGB leds[NUM_LEDS];
 
 // Brightness control
 bool internalBrightness = false;
+bool useTempInternalBrightness = false;
 uint8_t globalBrightnessValue = 20; // Set to a default of 20.  This is overridden in the P command or read from EEPROM.
+uint8_t tempGlobalBrightnessValue = 20; // Used in the 3Pyyy command to temporarily use internal brightness for script use.
 uint8_t previousglobalPOTaverage = 0;
 uint8_t tempglobalPOTaverage = 10;
 uint8_t globalPOTaverage = 10; // Used to store the POT average for brightness setting with the POT.
@@ -2456,6 +2468,30 @@ void doPcommand(int address, int argument)
       DEBUG_PRINT("Setting brightness to: ");
       DEBUG_PRINT_LN(globalBrightnessValue);
       break;
+    case 3:
+      //// Brightness Control ////
+      //
+      // This PSI CAN DRAW MORE POWER THAN YOUR USB PORT CAN SUPPLY!!
+      // When using the USB connection on the Pro Micro to power the PSI (during programming
+      // for instance) be sure to have the brightness POT turned nearly all the way COUNTERCLOCKWISE.  
+      // Having the POT turned up too far when plugged into USB can damage the Pro Micro
+      // and/or your computer's USB port!!!!
+      // If you are connected to USB, KEEP THIS VALUE LOW, not higher than 20.
+      // Be aware that if you change the PSI setting to use the internal brightness value, set this back
+      // to 20 prior to plugging the PSI into your USB port!
+      // The Pro Micro can also be removed from the PSI and programmed separately. 
+
+      if (argument == 0){
+        useTempInternalBrightness = false;
+        DEBUG_PRINT("Restoring previous brightness values.");
+      }
+      else {
+        useTempInternalBrightness = true;
+        if (argument > 175) tempGlobalBrightnessValue = 175;
+        else tempGlobalBrightnessValue = argument;
+      }
+      
+      break;
     default:
       break;
   }  
@@ -2465,8 +2501,9 @@ void doPcommand(int address, int argument)
 // This is where we'll read from the pot, etc
 uint8_t brightness() {
   //LED brightness is capped at 200 (out of 255) to reduce heat and extend life of LEDs. 
-  if (!internalBrightness) return globalPOTaverage;
-  else return globalBrightnessValue;
+  if (useTempInternalBrightness) return tempGlobalBrightnessValue;
+  else if (internalBrightness) return globalBrightnessValue;
+  else return globalPOTaverage;
 }
 
 // Firmware Routine to average the value received from the POT so that the external resistor isn't needed
@@ -2476,7 +2513,7 @@ uint8_t averagePOT() {
   
   // Calculate the Rolling Sum
   POTSum -= POTReadings[POTIndex];
-  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
+  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 175);
   POTSum += POTReadings[POTIndex];
 
   // Adjust the index so we maintain a circular buffer.

@@ -1,4 +1,4 @@
-# PSIPro Version 0.99_5 - Released April 10th 2020
+# PSIPro Version 1.0 - Released April 11th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -11,6 +11,10 @@ Pattern Timing Tuning by Malcolm MacKenzie
 Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
+
+     *  Version 1.0 - 11th April 2020
+	* Added 3Pyy command to set brightness without saving to EEPROM
+	* Limit the Max LED Brightness to 175 to preserve the LED Life.
    
     * Version 0.99_5 - 10th April 2020
 	* Renamed USB_DEBUG to USB_SERIAL
