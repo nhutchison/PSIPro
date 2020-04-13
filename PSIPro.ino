@@ -7,13 +7,22 @@
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
  *
- *  Version 1.0
+ *  Version 1.1
  *
  *  Version History :
  *  
+ *  Version 1.1 - 13th April 2020
+ *  
+ *    Fixed a bug in the Rebel pattern where it would blink the first time a timing command was given
+ *      Subsequent calls to Rebel with timing supplied worked
+ *    Explicitly check in Fade Out and Lightsaber Battle for a timing parameter supplied and ignore it
+ *    All CRGB:White changed to CRGB:Grey to reduce power consumption of the panel
+ *    Max Brightness allowed upped to 200 from 175
+ *    Renamed the sketch to match git repo
+ *  
  *  Version 1.0 - 11th April 2020
  *    Added 3Pyy command to set brightness without saving to EEPROM
- *    Limit the Max LED Brightness to 175 to preserve the LED Life.
+ *    Limit the Max LED Brightness to 200 to preserve the LED Life.
  *  
  *  Version 0.99_5 - 10th April 2020
  *    Renamed USB_DEBUG to USB_SERIAL
@@ -144,7 +153,7 @@
  *                If x is 3, Set the internal brighness value, overriding the POT, but do not save to EEPROM.
  *                  3P0 will restore the brightness to it's previous value.  If that was POT control, the POT setting
  *                  will be used, it if was internal brightness, then the previous globla internal brigtness witll be used.
- *                  3Pyyy will set the brightness in the range 1 to 175.  Values over 175 will be limited to 175 to preserve
+ *                  3Pyyy will set the brightness in the range 1 to 200.  Values over 200 will be limited to 200 to preserve
  *                  the life of the LED's.
  *               
  *               @xPy from R2 Touch (You don't need the '0' before the x when using the P command. 
@@ -928,10 +937,13 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
   if (firstTime) {
     firstTime = false;
     patternRunning = true;
-    allOFF(true);
+    // AllOff will set the timing, so we don't want to re-set it if timing was received for single display patterns!
     // Special case where we don't want to use the global timeout!
-    if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
-    if (timingReceived) set_global_timeout(commandTiming);
+    if (timingReceived) {
+      set_global_timeout(commandTiming);
+      runtime = 0;
+    }    
+    if (runtime != 0) set_global_timeout(runtime);
   }
 
   // First row is easy
@@ -1033,9 +1045,10 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
 
   if (displayMe) FastLED.show(brightness());
 
-  if (runtime != 0) {
+  if (runtime != 0){
     globalTimerDonedoRestoreDefault();
   }
+  else if (timingReceived) globalTimerDonedoRestoreDefault();
 }
 
 //////////////////////////////
@@ -1557,6 +1570,8 @@ void FadeOut(unsigned long time_delay, uint8_t loops) {
     patternRunning = true;
     globalPatternLoops = totalLoopCount;
     ledPatternState = 0;
+    // Just ignore the timing from the command, this sequence doesn't work with it.
+    if (timingReceived) timingReceived = false;
   }
 
   updateLed = 0;
@@ -1762,6 +1777,8 @@ void lightsaberBattle(unsigned long time_delay)
     ledPatternState = 0;
     // Clear the display the first time through
     allOFF(true);
+    // Just ignore the timing from the command, this sequence doesn't work with it.
+    if (timingReceived) timingReceived = false;
   }
 
   updateLed = 0;
@@ -2000,7 +2017,7 @@ void set_global_timeout(unsigned long timeout)
   if (timeout == 256) timeout *= 4;
   globalTimeout = millis() + (timeout * 1000);
   DEBUG_PRINT("Current time "); DEBUG_PRINT_LN(millis());
-  DEBUG_PRINT("Timeout received "); DEBUG_PRINT(timeout);
+  DEBUG_PRINT("Timeout received "); DEBUG_PRINT_LN(timeout);
   DEBUG_PRINT("End time Timeout "); DEBUG_PRINT_LN(globalTimeout);
 }
 
@@ -2101,11 +2118,11 @@ void runPattern(int pattern) {
       march(0xffffff, 552, 42, 47);
       break;
     case 12:          // 13 - Disco Ball - 4 seconds
-      DiscoBall(150, 30, 3, CRGB::White, 4); //gray /30
+      DiscoBall(150, 30, 3, CRGB::Grey, 4); //gray /30
       break;
     case 13:          // 13 - Disco Ball
       // Time Delay, loops, sparkles, colour.  If loops is 0, this is on indefinately.
-      DiscoBall(150, 0, 3, CRGB::White, 0); //gray /30
+      DiscoBall(150, 0, 3, CRGB::Grey, 0); //gray /30
       break;
     case 14:          // 14 - Rebel Symbol
       // Pass the matrix a main color and a background color
@@ -2115,7 +2132,7 @@ void runPattern(int pattern) {
       Cylon_Col(0xff0000, 250, 1, 5, 0);
       break;
     case 16:        // All LED's On White Indefinitely
-      allON(CRGB::White, true);
+      allON(CRGB::Grey, true);
       break;
     case 17:              //  17 - Turns Panel On Red Indefinitely
       allON(CRGB::Red, true);
@@ -2461,7 +2478,7 @@ void doPcommand(int address, int argument)
       // to 20 prior to plugging the PSI into your USB port!
       // The Pro Micro can also be removed from the PSI and programmed separately. 
       
-      if (argument > 175) globalBrightnessValue = 175;
+      if (argument > 200) globalBrightnessValue = 200;
       else globalBrightnessValue = argument;
       EEPROM.write(internalBrightnessAddress, globalBrightnessValue);
       
@@ -2487,7 +2504,7 @@ void doPcommand(int address, int argument)
       }
       else {
         useTempInternalBrightness = true;
-        if (argument > 175) tempGlobalBrightnessValue = 175;
+        if (argument > 200) tempGlobalBrightnessValue = 200;
         else tempGlobalBrightnessValue = argument;
       }
       
@@ -2513,7 +2530,7 @@ uint8_t averagePOT() {
   
   // Calculate the Rolling Sum
   POTSum -= POTReadings[POTIndex];
-  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 175);
+  POTReadings[POTIndex] = map(analogRead(POT_BRIGHT_PIN), 0, 1024, 0, 200);
   POTSum += POTReadings[POTIndex];
 
   // Adjust the index so we maintain a circular buffer.
