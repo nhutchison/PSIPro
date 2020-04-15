@@ -1,26 +1,14 @@
-// Release version 1.0
+// Release version 1.1
 
-// If USB_SERIAL is defined, the Serial port on the USB of the 
-// Pro Micro will be used for communication, and debug output
-// Uncomment this if you want to debug, add new patterns etc,
-// and are working via USB.  Note the brigtness warning below!
-// The normal mode is that the Controller will be connected
-// using the Tx and R pins on the controller to talk to other
-// devices in R2.
-// Default is to use the Serial Pins, which are on Serial1
-// Uncommenting the line beow switches to using the USB port
-// and the Serial on the USB.
+///////////////////////////////////////////
+//////////// PSI CONFIGURATION //////////// 
+///////////////////////////////////////////
 
-//#define USB_SERIAL
 
-// Use these settings to customize the PSI animations. 
-//
 
-// Colors are divded into Primary (Default is Blue for the 
-// front PSI and Green for the Rear) and Secondary (Default
-// is Red for the front PSI and Yellow for the rear).
-
-// Settings:
+////////////////////////////////////////
+//////////// Timer Settings ///////////
+//////////////////////////////////////
 
 // The numberd pattern Modes have various preprogrammed lengths
 // to match those of the Teeces Logic patterns. Some of the additional Modes 
@@ -32,39 +20,49 @@
 
 bool alwaysOn = false;
 
-// If your JEDI Device can send ay 9600 baud, uncomment this line.
+// If your JEDI Device can send at 9600 baud, uncomment this line.
 // The Current Teeces interface runs at a mindnumbingly slow 2400 only!
+
 //#define _9600BAUDSJEDI_
 
 
-///////////////////////////////////////////////////////
-///////////// SET DEFAULT PATTERN  ////////////////////
-///////////////////////////////////////////////////////
+//////////////////////////////////////////////
+//////////// SET DEFAULT PATTERN ////////////
+////////////////////////////////////////////
 
 // Any display Mode can be the default Mode the PSI returns to
 // after completing a command initiated Mode.  The standard default Mode
 // is Swipe.  Use this to set the default Mode number
+
 uint8_t defaultPattern = 1; //Mode 1 is Swipe
 
-// The number of milliseconds pauses on the primary color
+//////////////////////////////////////////////
+//////////// SWIPE MODE SETTINGS ////////////
+////////////////////////////////////////////
+
+// Colors are divded into Primary (Default is Blue for the 
+// front PSI and Green for the Rear) and Secondary (Default
+// is Red for the front PSI and Yellow for the rear).
+
+// The number of milliseconds the PSI pauses on the primary color
 // before switching to the secondary color.
 // A random value between MINIMUM and MAXIMUM will be used.
 
-#define PRIMARY_COLOR_DURATION_MINIMUM 1000
-#define PRIMARY_COLOR_DURATION_MAXIMUM 4000
+#define PRIMARY_COLOR_DURATION_MINIMUM 2000  // Default 2000
+#define PRIMARY_COLOR_DURATION_MAXIMUM 10000 // Default 10000
 
 // Number of milliseconds that the secondary color will be
 // visible before switching back to the primary color.
 // A random value between MINIMUM and MAXIMUM will be used.
 
-#define SECONDARY_COLOR_DURATION_MINIMUM 4000
-#define SECONDARY_COLOR_DURATION_MAXIMUM 10000
+#define SECONDARY_COLOR_DURATION_MINIMUM 5000  // Default 4000
+#define SECONDARY_COLOR_DURATION_MAXIMUM 12000 // Default 12000
 
 // Speed range of the swipe animation. Longer delay means
 // slower animation speed. 
 
-#define SWIPE_DELAY_MINIMUM 20
-#define SWIPE_DELAY_MAXIMUM 100
+#define SWIPE_DELAY_MINIMUM 20    // Default 20
+#define SWIPE_DELAY_MAXIMUM 50    // Default 50
 
 // Define the chance proportion between the various options for
 // the secondary color. Increasing a value compared to the others increases
@@ -72,7 +70,7 @@ uint8_t defaultPattern = 1; //Mode 1 is Swipe
 // set to 0, it will not be selected.
 
 #define CHANCE_SECONDARY_FULL 6
-#define CHANCE_SECONDARY_PARTIAL 2
+#define CHANCE_SECONDARY_PARTIAL 4
 #define CHANCE_SECONDARY_PARTIAL_OFF 6
 
 // How many columns to display the secondary color.
@@ -81,25 +79,27 @@ uint8_t defaultPattern = 1; //Mode 1 is Swipe
 #define SECONDARY_PARTIAL_LINES_MAX 6 //The remainder will be the primary color.
 #define SECONDARY_PARTIAL_OFF_LINES 5 //The remainder will be off.
 
-// Use the jumpers on the PSI CPU board to set Font (jumper off)
-// or Rear (jumper on)
+// Use the jumpers on the PSI CPU board to set Front colors (jumper off)
+// or Rear colors (jumper on).
 
 // Use the folloing settings to adjust the colors for font and rear.
 
 // Set colors for the front PSI.
-
-CRGB frontPrimaryColor = CRGB(0, 0, 255);  // Blue
-CRGB frontSecondaryColor = CRGB(255, 0, 0); // Red
-CRGB frontSecondaryOffColor = CRGB::Black; // Off
+                                            // Default colors
+CRGB frontPrimaryColor = CRGB(0, 0, 255);   // Blue (0, 0, 255)
+CRGB frontSecondaryColor = CRGB(255, 0, 0); // Red  (255, 0, 0)
+CRGB frontSecondaryOffColor = CRGB::Black;  // Off Black
 
 // Colors for the rear PSI
-CRGB rearPrimaryColor = CRGB(0, 255, 0);      // Green
-CRGB rearSecondaryColor = CRGB(200, 170, 0);  // Yellow
-CRGB rearSecondaryOffColor = CRGB::Black; // Off
+                                              // Default colors
+CRGB rearPrimaryColor = CRGB(0, 255, 0);      // Green  (0, 255, 0)
+CRGB rearSecondaryColor = CRGB(200, 170, 0);  // Yellow (200, 170, 0)
+CRGB rearSecondaryOffColor = CRGB::Black;     // Off Black
 
 #define JUMP_FRONT_REAR 14
 
-// Set the colours based on the pin.
+// Set the colors based on the pin being jumpered to ground.
+
 CRGB primary_color() {
   if (digitalRead(JUMP_FRONT_REAR)) {
     return frontPrimaryColor;
@@ -124,21 +124,51 @@ CRGB secondary_off_color() {
   }
 }
 
-// This is the pin for the Brighness POT.
-#define POT_BRIGHT_PIN 19
+//////////////////////////////////////////
+//////////// Serial SETTINGS //////////// 
+////////////////////////////////////////
 
-/////////////////////////////////////////////
-/////////  Assign IC2 Address Below   ///////
-/////////////////////////////////////////////
+// If USB_SERIAL is defined, the Serial port on the USB of the 
+// Pro Micro will be used for communication, and debug output
+// Uncomment this if you want to debug, add new patterns etc,
+// and are working via USB.  Note the brigtness warning on the main
+// sketch tab! The normal mode is that any serial control device (MarcDuino,
+// STEALTH etc) will be connected to the PSI via the header pins on the
+// PSI PCB by default.  These pins are referred to as Serial1.
+// Uncommenting the line beow switches to using the USB port
+// and the Serial on the USB of the Pro Micro instead.
+
+// If you are using an Arduino with only one serial connection such
+// as the Pro Mini, then you will want to uncomment this line to ensure
+// the sketch uses Serial and not Serial1 for communication.  
+
+//#define USB_SERIAL
+
+
+
+
+///////////////////////////////////////////////////
+//////////// Assign IC2 Address Below ////////////
+/////////////////////////////////////////////////
+
 byte I2CAdress = 22;
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 
 
 
-// CHANGED BEYOND THESE LINES SHOULD NOT BE NECESSARY
-// 
 
+
+// This is the pin for the Brighness POT
+
+#define POT_BRIGHT_PIN 19
+
+
+///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+// CHANGES BEYOND THESE LINES SHOULD NOT BE NECESSARY ///
+////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 
 // This is Neil's personal setup ... probably don't play with this!
 //#define NEIL_PERSONAL_DEBUG

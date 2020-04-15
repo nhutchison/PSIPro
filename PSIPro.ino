@@ -1,4 +1,4 @@
-/***************************
+/**********************************************************************************************************
  *  Maxstang's MaxPSI Sketch for the PSI PRO Connected
  *  Written by Neil Hutchison
  *  Main sequence transitions by Krijn Schaap, based on his PSI sketch.  Many thanks Krijn.
@@ -6,6 +6,10 @@
  *  
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
+ *  
+ *
+ *    
+ *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
  *  Version 1.1
  *
@@ -114,6 +118,25 @@
  *  Support for Front/Rear color selection using Jumper implemented
  *  Brightness Pot implemented
  * 
+ * 
+ *                           ***************************   
+ *                           ********* WARNING *********
+ *                           ***************************
+ *                                       
+ *          This PSI CAN DRAW MORE POWER THAN YOUR COMPUTER'S USB PORT CAN SUPPLY!! 
+ *     
+ *     When using the USB connection on the Pro Micro to power the PSI (during programming 
+ *     for instance) be sure to have the brightness POT turned nearly all the way COUNTERCLOCKWISE.  
+ *     Having the POT turned up too far when plugged into USB can damage the Pro Micro and/or your 
+ *     computer's USB port!!!! If you are using the internal brightness control and are connected 
+ *     to USB, KEEP THIS VALUE LOW, not higher than 20. The Pro Micro can also be removed from the 
+ *     PSI and programmed separately. 
+ *              
+ *              
+ *               
+ *  ///////////////////////// COMMANDS AND COMMAND STRUCTURE /////////////////////////            
+ * 
+ *  
  *  Supported JAWALite Commands via Serial or i2c:
  *
  *  Serial:
@@ -146,7 +169,8 @@
  *                  
  *                If x is 2, Set the internal brightness value, overriding the POT.
  *                  The default setting is that brightness is 20.
- *                  y is a value between 0 (off) and 255 (max brightness) This value
+ *                  y is a value between 0 (off) and 255 (max brightness) Values over 200 
+ *                  will be limited to 200 to preserve the life of the LEDs.This value
  *                  is saved to the EPROM and will persist after power down. 
  *                  for example:  2Py or 2Pyy or 2Pyyy
  *                  
@@ -154,7 +178,7 @@
  *                  3P0 will restore the brightness to it's previous value.  If that was POT control, the POT setting
  *                  will be used, it if was internal brightness, then the previous globla internal brigtness witll be used.
  *                  3Pyyy will set the brightness in the range 1 to 200.  Values over 200 will be limited to 200 to preserve
- *                  the life of the LED's.
+ *                  the life of the LEDs.
  *               
  *               @xPy from R2 Touch (You don't need the '0' before the x when using the P command. 
  *                                          
@@ -200,7 +224,7 @@
  *
  *    Mode 0  - Turn Panel off (This will also turn stop the Teeces if they share the serial connection and the "0" address is used)
  *    Mode 1  - Default (Swipe) The default mode can be changed on the config.h tab
- *    Mode 2  - Flash (fast flash) (4 seconds)
+ *    Mode 2  - Flash (fast flash) (4 seconds) Use caution around those sensitive to flashing lights.  
  *    Mode 3  - Alarm (slow flash) (4 seconds)
  *    Mode 4  - Short Circuit (10 seconds)
  *    Mode 5  - Scream (4 seconds)

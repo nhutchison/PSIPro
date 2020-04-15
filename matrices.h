@@ -1,5 +1,5 @@
 //Matrices for specialized display patterns
-// Release version 1.0
+// Release version 1.1
 
 const byte LetterI[] PROGMEM = //Capital Letter "I"
 {
