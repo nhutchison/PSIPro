@@ -11,9 +11,15 @@
  *    
  *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
- *  Version 1.1
+ *  Version 1.2
  *
  *  Version History :
+ *  
+ *  Version 1.2 16th April 2020
+ *  
+ *    Correct comment typos
+ *    Always on was actually only on for 17 min. Changed to +18 hrs.
+ *    Change Star Wars Intro
  *  
  *  Version 1.1 - 13th April 2020
  *  
@@ -49,7 +55,7 @@
  *    Send the command using 0Tx|y where |y is optional.  y is in seconds.
  *  
  *  Version 0.97 - 7th April 2020
- *  Added ability to set Disco Ball and VU Meter on Indefinately.
+ *  Added ability to set Disco Ball and VU Meter on indefinitely.
  *      Mode 13 is the new Always on Disco Ball
  *      Mode 12 is the timed Disco Ball 
  *      Mode 92 is VU Meter (always on) to match Logic commanding
@@ -111,7 +117,7 @@
  *  Non-Delay version of code.
  *  Allows sequences to be interrupted at ay time.
  *  Waiting for sequence completion is no longer required
- *  Set the defauly brightness in setup from the Brightness POT
+ *  Set the default brightness in setup from the Brightness POT
  *
  *  Version 0.6 - 29th March 2020
  *  Base versions of most sequences implented
@@ -156,27 +162,28 @@
  *  Command xPy - Sets various board parameters.
  *                If x is 0, Set the alwaysOn behavior of the panel
  *                  The default mode for the panel is to display command sequences for 
- *                  a given time, then revert to the standard swipe behavior.  
+ *                  a given time, then revert to the default pattern (swipe).  
  *                  By sending the xPy command, this can be changed.
- *                  Y is either 0 or 1 (default or always on mode)
- *                  0P0 - Default mode, where swipe is restored after the sequence plays
+ *                  y is either 0 or 1 (default or always on mode)
+ *                  0P0 - Default mode, where default pattern (swipe) is restored after the sequence plays
  *                  0P1 - The sequence continues to play until a new comand is received.
+ *                  
  *                If x is 1, Set the POT mode
  *                  The default is to read the external POT value for setting brightness
- *                  Y is either 0 or 1 (Pot or internal setting)
+ *                  y is either 0 or 1 (Pot or internal setting)
  *                  1P0 - Default mode, uses the external POT to set the LED brightness
  *                  1P1 - Use the internal brightness, which is set using command 2Py below
  *                  
  *                If x is 2, Set the internal brightness value, overriding the POT.
  *                  The default setting is that brightness is 20.
  *                  y is a value between 0 (off) and 255 (max brightness) Values over 200 
- *                  will be limited to 200 to preserve the life of the LEDs.This value
+ *                  will be limited to 200 to preserve the life of the LEDs. This value
  *                  is saved to the EPROM and will persist after power down. 
  *                  for example:  2Py or 2Pyy or 2Pyyy
  *                  
  *                If x is 3, Set the internal brighness value, overriding the POT, but do not save to EEPROM.
  *                  3P0 will restore the brightness to it's previous value.  If that was POT control, the POT setting
- *                  will be used, it if was internal brightness, then the previous globla internal brigtness witll be used.
+ *                  will be used, it if was internal brightness, then the previous global internal brightness witll be used.
  *                  3Pyyy will set the brightness in the range 1 to 200.  Values over 200 will be limited to 200 to preserve
  *                  the life of the LEDs.
  *               
@@ -203,11 +210,11 @@
  *  
  *  Commands:
  *  
- *  Address modifiers for "T" commands.  The digit preceeding the T is is the address:
+ *  Address modifiers for "T" commands.  The digit preceeding the T is the address:
  *  
  *  0 is all
  *  4 is Front PSI
- *  5 is rear PSI as taken from Marc's Teeces command guide.
+ *  5 is Rear PSI as taken from Marc's Teeces command guide.
  *  
  *      Address field is interpreted as follows:
  *      0 - global address, all displays that support the command are set
@@ -221,7 +228,10 @@
  *      8 - Top Holo   (not implemented here)
  *
  *  Command T Modes
- *
+ *  Sensitivity to flashing lights can be as slow as 3x/second.  
+ *    e.g. Flash, Alarm, Scream
+ *  You must be cautious.
+ * 
  *    Mode 0  - Turn Panel off (This will also turn stop the Teeces if they share the serial connection and the "0" address is used)
  *    Mode 1  - Default (Swipe) The default mode can be changed on the config.h tab
  *    Mode 2  - Flash (fast flash) (4 seconds) Use caution around those sensitive to flashing lights.  
@@ -229,13 +239,13 @@
  *    Mode 4  - Short Circuit (10 seconds)
  *    Mode 5  - Scream (4 seconds)
  *    Mode 6  - Leia Message (34 seconds)
- *    Mode 7  - I heart U (10 seconds)
- *    Mode 8  - Quarter Panel sweep (7 seconds)
+ *    Mode 7  - I Heart U (10 seconds)
+ *    Mode 8  - Quarter Panel Sweep (7 seconds)
  *    Mode 9  - Flashing Red Heart (Front PSI), Pulse Monitor (Rear PSI)
  *    Mode 10 - Star Wars - Title Scroll (15 seconds)
  *    Mode 11 - Imperial March (47 seconds)
  *    Mode 12 - Disco Ball (4 seconds)
- *    Mode 13 - Disco Ball -Runs Indefinitely
+ *    Mode 13 - Disco Ball - Runs Indefinitely
  *    Mode 14 - Rebel Symbol (5 seconds)
  *    Mode 15 - Knight Rider (20 seconds)
  *    Mode 16 - Test Sequence (White on Indefinitely)
@@ -243,8 +253,8 @@
  *    Mode 18 - Green on Indefinitely
  *    Mode 19 - LightSaber Battle
  *    Mode 20 - Star Wars Intro (scrolling yellow "text" getting smaller and dimmer)
- *    Mode 21 - VU Meter  (4 seconds)
- *    Mode 92 - VU Meter  -Runs Indefinitely (Spectrum on Teeces)
+ *    Mode 21 - VU Meter (4 seconds)
+ *    Mode 92 - VU Meter - Runs Indefinitely (Spectrum on Teeces)
  *    
  * Most users shouldn't need to change anything below this line. Please see the config.h tab    
  * for user adjustable settings.  
@@ -263,11 +273,11 @@ CRGB leds[NUM_LEDS];
 // Brightness control
 bool internalBrightness = false;
 bool useTempInternalBrightness = false;
-uint8_t globalBrightnessValue = 20; // Set to a default of 20.  This is overridden in the P command or read from EEPROM.
+uint8_t globalBrightnessValue = 20;     // Set to a default of 20.  This is overridden in the P command or read from EEPROM.
 uint8_t tempGlobalBrightnessValue = 20; // Used in the 3Pyyy command to temporarily use internal brightness for script use.
 uint8_t previousglobalPOTaverage = 0;
 uint8_t tempglobalPOTaverage = 10;
-uint8_t globalPOTaverage = 10; // Used to store the POT average for brightness setting with the POT.
+uint8_t globalPOTaverage = 10;          // Used to store the POT average for brightness setting with the POT.
 
 // Command loop processing times
 unsigned long previousMillis = 0;
@@ -292,8 +302,8 @@ unsigned long commandTiming = 0;
 int level[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 //Serial Stuff
-int lastPSIeventCode     = defaultPattern;
-bool firstTimeCode      = true;
+int lastPSIeventCode = defaultPattern;
+bool firstTimeCode   = true;
 
 // handle to the Serial object
 Stream* serialPort;
@@ -343,21 +353,22 @@ void setup() {
   // initialize suart used to communicate with the JEDI Display at 2400 or 9600 bauds
   // This is set in config.h
   uint16_t baudrate;
-#ifdef _9600BAUDSJEDI_
-  baudrate=9600;
-#else
-  baudrate=2400;
-#endif
 
-// Setup for Official Pro Micro.  The offical PRO can switch like this.
-#ifdef USB_SERIAL
-  // If we want to debug on the USB, then we use Serial
-  Serial.begin(baudrate);
-  serialPort=&Serial;
-#else
-  Serial1.begin(baudrate);
-  serialPort=&Serial1;
-#endif
+  #ifdef _9600BAUDSJEDI_
+    baudrate=9600;
+  #else
+    baudrate=2400;
+  #endif
+
+  // Setup for Official Pro Micro.  The offical PRO can switch like this.
+  #ifdef USB_SERIAL
+    // If we want to debug on the USB, then we use Serial
+    Serial.begin(baudrate);
+    serialPort=&Serial;
+  #else
+    Serial1.begin(baudrate);
+    serialPort=&Serial1;
+  #endif
 
   // READ the default settings from the EEPROM
   byte value;
@@ -510,8 +521,10 @@ void fill_row(uint8_t row, CRGB color, uint8_t scale_brightness=0) {
   }
 }
 
-// Display a solid line across each row in ascending or decending order, based on the scanDirection
-// Scan Direction of 0 will scan Down from the top row, 1 swill scan up from the bottom row.
+// Display a solid line across each row in ascending or decending order, based on the scanDirection.
+// Scan Direction:
+//  0: Scan down from the top row
+//  1: Scan up from the bottom row.
 void scanRow(unsigned long time_delay, int start_row, CRGB color, bool scanDirection)
 {
   if (firstTime) {
@@ -570,7 +583,7 @@ void scanRow(unsigned long time_delay, int start_row, CRGB color, bool scanDirec
 
     // Increment the state.
     if (scanDirection == 0) ledPatternState++;
-    if (scanDirection == 1) ledPatternState --;
+    if (scanDirection == 1) ledPatternState--;
     if (ledPatternState < 0)
     {
       ledPatternState = (LEDS_PER_COLUMN - 1);
@@ -691,8 +704,8 @@ void scanRowDownUp(unsigned long time_delay, int start_row, CRGB color, bool sca
   }
 }
 
-// Display a solid line across each row in ascending or decending order, based on the scanDirection
-// Scan Direction of 0 will scan right to left across the columns starting at the first specified row from the right,
+// Display a solid line across each row in ascending or decending order, based on the scanDirection.
+// Scan Direction of 0 will scan right to left across the columns starting at the first specified row from the right.
 // Scan Direction of 1 will scan left to right across the columns starting at the first specified row from the left.
 void scanCol(unsigned long time_delay, int start_col, CRGB color, bool scanDirection)
 {
@@ -776,7 +789,7 @@ void scanCol(unsigned long time_delay, int start_col, CRGB color, bool scanDirec
 
     // Increment the state.
     if (scanDirection == 0) ledPatternState++;
-    if (scanDirection == 1) ledPatternState --;
+    if (scanDirection == 1) ledPatternState--;
     if (ledPatternState < 0)
     {
       ledPatternState = (COLUMNS - 1);
@@ -795,8 +808,9 @@ void scanCol(unsigned long time_delay, int start_col, CRGB color, bool scanDirec
   }
 }
 
+
 // Sweeps Left/Right or Right/Left across the columns.
-// Scan Direction of 0 will scan right to left across the columns starting at the first specified row from the right,
+// Scan Direction of 0 will scan right to left across the columns starting at the first specified row from the right.
 // Scan Direction of 1 will scan left to right across the columns starting at the first specified row from the left.
 void scanColLeftRight(unsigned long time_delay, int start_row, CRGB color, bool scanDirection)
 {
@@ -986,7 +1000,7 @@ void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool 
     }  
     ledNum++;
   }
-  // Second row, we take 7-14 and make them 14-17
+  // Second row, we take 7-14 and make them 14-7
   for (int i = 0; i < 8; i++) {
     ledOn = pgm_read_dword(&(matrix[13 - i]));
     switch (ledOn){
@@ -1183,7 +1197,6 @@ void Cylon_Col(CRGB color, unsigned long time_delay, int type, int loops, unsign
     if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
   }
-
 
   switch (type) {
     case 1:
@@ -1498,7 +1511,6 @@ void swipe() {
           ledState = PrimaryToSecondary;
           swipeDelay = random(SWIPE_DELAY_MINIMUM, SWIPE_DELAY_MAXIMUM);
           DEBUG_PRINT_LN("Switching to secondary color");
-
 
           int totalChance = CHANCE_SECONDARY_FULL + CHANCE_SECONDARY_PARTIAL + CHANCE_SECONDARY_PARTIAL_OFF;
           int selection = random(totalChance);
@@ -1925,7 +1937,6 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color, unsigned
     if ((runtime != 0) && (!timingReceived)) set_global_timeout(runtime);
     if (timingReceived) set_global_timeout(commandTiming);
     ledPatternState = 2;
-    // Clear the display the first time through
     allOFF(true);
   }
 
@@ -1943,15 +1954,15 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color, unsigned
               leds[33]=0x000000;
               leds[24]=0x000000; ledPatternState=5; updateLed = 1; break;
       case 5: allOFF(false);
-              fill_row(4, color);
-              fill_row(2, color, 100); 
+	      fill_row(4, color); 
+	      fill_row(2, color, 100); 
               // Turn off some pixels to shrink row 2
               leds[14]=0x000000;
               leds[15]=0x000000;
               leds[22]=0x000000;
               leds[23]=0x000000;
               ledPatternState=6; updateLed = 1; break;
-      case 6: allOFF(false); 
+       case 6: allOFF(false); 
               //fill_row(5, color);
               fill_row(3, color);
               leds[33]=0x000000;
@@ -1984,7 +1995,7 @@ void StarWarsIntro(unsigned long time_delay, uint8_t loops, CRGB color, unsigned
               leds[7]=0x000000;
               leds[6]=0x000000;
               fill_row(0, color, 12);
-              // Turn off some pixels to shrink row 0 
+              // Turn off some pixels to shrink row 0
               leds[0]=0x000000;
               leds[1]=0x000000;
               leds[4]=0x000000;
@@ -2036,9 +2047,10 @@ bool checkDelay()
 //set the global pattern timeout
 void set_global_timeout(unsigned long timeout)
 {
-  // use 256 to set as "always on"
-  // 256 is already 4 hours, but multiply this up to 16 hours!
-  if (timeout == 256) timeout *= 4;
+// use 256 to set as "always on"
+// 256 sec == ~4 mins. To make the pattern run longer, square the value
+// resulting in ~18 hours
+  if (timeout == 256) timeout *= timeout;
   globalTimeout = millis() + (timeout * 1000);
   DEBUG_PRINT("Current time "); DEBUG_PRINT_LN(millis());
   DEBUG_PRINT("Timeout received "); DEBUG_PRINT_LN(timeout);

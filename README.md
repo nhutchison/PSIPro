@@ -12,7 +12,12 @@ Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
 
-    *  Version 1.1 - 13th April 2020
+    *  Version 1.1.01 16th April 2020
+	 *    Correct comment typos
+	 *    Always on was actually only on for 17 min. Changed to +4 hrs.
+	 *    Change Star Wars Intro
+		
+	*  Version 1.1 - 13th April 2020
      * Fixed a bug in the Rebel pattern where it would blink the first time a timing command was given
 	    Subsequent calls to Rebel with timing supplied worked
      * Explicitly check in Fade Out and Lightsaber Battle for a timing parameter supplied and ignore it
@@ -45,7 +50,7 @@ Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
            * Send the command using 0Tx|y where |y is optional.  y is in seconds.
 
     *  Version 0.97 - 7th April 2020
-        *  Added ability to set Disco Ball and VU Meter on Indefinitely.
+        *  Added ability to set Disco Ball and VU Meter on indefinitely.
             * Mode 13 is the new Always on Disco Ball
             * Mode 12 is the timed Disco Ball 
             * Mode 92 is VU Meter (always on) to match Logic commanding
@@ -186,11 +191,12 @@ The PSI Pro's display Mode can be changed by sending JawaLite commands via seria
    Command xPy - Sets various board parameters.
                  If x is 0, Set the alwaysOn behavior of the panel
                    The default mode for the panel is to display command sequences for 
-                   a given time, then revert to the standard swipe behavior.  
+                   a given time, then revert to the default pattern.  
                    By sending the xPy command, this can be changed.
                    Y is either 0 or 1 (default or always on mode)
-                   0P0 - Default mode, where swipe is restored after the sequence plays
+                   0P0 - Default mode, where default pattern is restored after the sequence plays
                    0P1 - The sequence continues to play until a new comand is received.
+				   
                  If x is 1, Set the POT mode
                    The default is to read the external POT value for setting brightness
                    Y is either 0 or 1 (Pot or internal setting)
@@ -199,21 +205,20 @@ The PSI Pro's display Mode can be changed by sending JawaLite commands via seria
                    
                  If x is 2, Set the internal brightness value, overriding the POT.
                    The default setting is that brightness is 20.
-                   y is a value between 0 (off) and 255 (max brightness) Values over 200 
+                   Y is a value between 0 (off) and 255 (max brightness) Values over 200 
                    will be limited to 200 to preserve the life of the LEDs.This value
                    is saved to the EPROM and will persist after power down. 
                    for example:  2Py or 2Pyy or 2Pyyy
                    
                  If x is 3, Set the internal brighness value, overriding the POT, but do not save to EEPROM.
                    3P0 will restore the brightness to it's previous value.  If that was POT control, the POT setting
-                   will be used, it if was internal brightness, then the previous globla internal brigtness witll be used.
+                   will be used, if it was internal brightness, then the previous global internal brightness will be used.
                    3Pyyy will set the brightness in the range 1 to 200.  Values over 200 will be limited to 200 to preserve
                    the life of the LEDs.
                 
                 @xPy from R2 Touch (You don't need the '0' before the x when using the P command. 
                                            
  
-  
    i2c:
  
    When sending i2c command the Panel Address is defined on the config.h tab to be 22.  The command type and value are needed.  
@@ -224,11 +229,11 @@ The PSI Pro's display Mode can be changed by sending JawaLite commands via seria
    
    Commands:
    
-   Address modifiers for "T" commands.  The digit preceeding the T is is the address:
+   Address modifiers for "T" commands.  The digit preceeding the T is the address:
    
    0 is all
    4 is Front PSI
-   5 is rear PSI as taken from Marc's Teeces command guide.
+   5 is Rear PSI as taken from Marc's Teeces command guide.
    
        Address field is interpreted as follows:
        0 - global address, all displays that support the command are set
@@ -242,16 +247,19 @@ The PSI Pro's display Mode can be changed by sending JawaLite commands via seria
        8 - Top Holo   (not implemented here)
  
    Command T Modes
+	* Sensitivity to flashing lights can be as slow as 3x/second.  
+	* e.g. Flash, Alarm, Scream
+	* You must be cautious.
  
      Mode 0  - Turn Panel off (This will also turn stop the Teeces if they share the serial connection and the "0" address is used)
      Mode 1  - Default (Swipe) The default mode can be changed on the config.h tab
-     Mode 2  - Flash (fast flash) (4 seconds) Use caution around those sensitive to flashing lights.  
+     Mode 2  - Flash (fast flash) (4 seconds) 
      Mode 3  - Alarm (slow flash) (4 seconds)
      Mode 4  - Short Circuit (10 seconds)
      Mode 5  - Scream (4 seconds)
      Mode 6  - Leia Message (34 seconds)
-     Mode 7  - I heart U (10 seconds)
-     Mode 8  - Quarter Panel sweep (7 seconds)
+     Mode 7  - I Heart U (10 seconds)
+     Mode 8  - Quarter Panel Sweep (7 seconds)
      Mode 9  - Flashing Red Heart (Front PSI), Pulse Monitor (Rear PSI)
      Mode 10 - Star Wars - Title Scroll (15 seconds)
      Mode 11 - Imperial March (47 seconds)
@@ -264,8 +272,8 @@ The PSI Pro's display Mode can be changed by sending JawaLite commands via seria
      Mode 18 - Green on Indefinitely
      Mode 19 - LightSaber Battle
      Mode 20 - Star Wars Intro (scrolling yellow "text" getting smaller and dimmer)
-     Mode 21 - VU Meter  (4 seconds)
-     Mode 92 - VU Meter  -Runs Indefinitely (Spectrum on Teeces)
+     Mode 21 - VU Meter (4 seconds)
+     Mode 92 - VU Meter - Runs Indefinitely (Spectrum on Teeces)
 
 
 SKETCH BASED PSI PRO SETTINGS
@@ -275,60 +283,60 @@ SKETCH BASED PSI PRO SETTINGS
 
 TIMER SETTINGS
 
-	The numbered pattern Modes have various preprogrammed lengths to match those of the Teeces Logic patterns. Some of the additional Modes have 	indefinite lengths.  To set ALL pattern Modes called using the Mode (T) command to remain on indefinitely, then set 'bool alwaysOn = false;'  	to true. The default is false, meaning that each selected pattern Mode will remain on for its set time, and then will return to the default 	pattern Mode. This can also be changed using command P as described above. 
+	The numbered pattern Modes have various preprogrammed lengths to match those of the Teeces Logic patterns. Some of the additional Modes have 
+	indefinite lengths.  To set ALL pattern Modes called using the Mode (T) command to remain on indefinitely, then set 'bool alwaysOn = false;' 
+	to true. The default is false, meaning that each selected pattern Mode will remain on for its set time, and then will return to the default 
+	pattern Mode. This can also be changed using command P as described above. 
 
 BAUD RATE
 
-	By default, the PSI Pro Connected uses a 2400bps baud rate.  This is due to the Teeces lighting running at this speed.  To change the default 	speed to a more reasonable 9600bps, comment in '#define_9600BAUDSJEDI_' in the sketch. 
+	By default, the PSI Pro Connected uses a 2400bps baud rate.  This is due to the Teeces lighting running at this speed.  To change the default 
+	speed to a more reasonable 9600bps, uncomment '#define_9600BAUDSJEDI_' in the sketch. 
 
 SETTING THE DEFAULT PATTERN MODE
 
-	The PSI Pro is shipped with Mode 1 (SWIP) as the default pattern mode, but any display Mode can be the default Mode the PSI returns to after 	completing a command initiated Mode.  To change the default mode, enter the mode number desired in 'uint8_t defaultPattern = 1;'.
+	The PSI Pro is shipped with Mode 1 (SWIPE) as the default pattern mode, but any display Mode can be the default Mode the PSI returns to after 
+	completing a command initiated Mode.  To change the default mode, enter the mode number desired in 'uint8_t defaultPattern = 1;'.
 
 
 SWIPE MODE SETTINGS
 
-	Colors are divided into Primary (Default is Blue for the front PSI and Green for the Rear) and Secondary (Default is Red for the front PSI and 	Yellow for the rear).
+	Colors are divided into 
+		Primary (Default is Blue for the front PSI and Green for the Rear) and 
+		Secondary (Default is Red for the front PSI and Yellow for the rear).
 
 
 	The behavior of the default SWIPE mode may be changed by adjusting the following parameters:
 
 	Primary Color Duration Minimum/Maximum
 
-		Choose the maximum and minimum random number of milliseconds the PSI pauses on the Primary color before switching to the secondary 		color.
+		Choose the maximum and minimum random number of milliseconds the PSI pauses on the Primary color before switching to the secondary color.
 
-		Choose the maximum and minimum random number of milliseconds the PSI pauses on the Secondary color before switching to the secondary 		color.
+		Choose the maximum and minimum random number of milliseconds the PSI pauses on the Secondary color before switching to the secondary color.
 
 		Choose the maximum and minimum random speed range of the swipe animation.
 
-		Define the chance proportion between the various options for the secondary color. Increasing a value compared to the others increases 		the likelihood of that option occurring. If the chance for an option is set to 0, it will not be occur.
+		Define the chance proportion between the various options for the secondary color. Increasing a value compared to the others increases the 
+		likelihood of that option occurring. If the chance for an option is set to 0, it will not be occur.
 
-		Choose the maximum and minimum random number of columns to display the secondary color. The remainder of the columns will display the 		primary color. 
+		Choose the maximum and minimum random number of columns to display the secondary color. 
+		The remainder of the columns will display the primary color. 
 
 		Choose the number of off (unlit) columns. This enables the 'half dark' PSI as seen in A New Hope. 
 
-		Choose the Primary and Secondary colors for the SWIPE mode.  These may be any RGB combination.  Default colors are red/blue and green/		yellow. 
+		Choose the Primary and Secondary colors for the SWIPE mode.  These may be any RGB combination.  
+		Default colors are red/blue and green/yellow. 
 
 		Choose the colors determined by setting the Front/Rear jumper on the back of the PSI Pro. 
 
 SERIAL SETTINGS
 
-	If 'USB_SERIAL' is defined, the serial port on the USB of the Pro Micro will be used for communication, and debug output. Uncomment this if you 	want to debug, add new patterns etc, and are working via USB.  Note the brightness warning above! The normal mode is that any serial control 	device (MarcDuino, STEALTH etc) will be connected to the PSI via the header pins on the PSI PCB by default.  These pins are referred to as 	Serial1. Uncommenting 'USB_SERIAL' switches to using the USB port and the Serial on the USB of the Pro Micro instead.  
+	If 'USB_SERIAL' is defined, the serial port on the USB of the Pro Micro will be used for communication, and debug output. Uncomment this if you 
+	want to debug, add new patterns etc, and are working via USB.  Note the brightness warning above! The normal mode is that any serial control 
+	device (MarcDuino, STEALTH etc) will be connected to the PSI via the header pins on the PSI PCB by default. These pins are referred to as Serial1. 
+	Uncommenting 'USB_SERIAL' switches to using the USB port and the Serial on the USB of the Pro Micro instead.
 
 I2C ADDRESS
 
 	By default, the PSI Pro's I2c address is 22.  This can be changed by inserting the desired address in 'byte I2CAdress = 22;'.
-
-
-
-
-
-
-
-
- 
-
-
-
-
-   
+	

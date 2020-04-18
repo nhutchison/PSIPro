@@ -1,24 +1,25 @@
-// Release version 1.1
+// Release version 1.2
 
-///////////////////////////////////////////
-//////////// PSI CONFIGURATION //////////// 
-///////////////////////////////////////////
+///////////////////////////////////////////////////
+//////////////// PSI CONFIGURATION ////////////////
+///////////////////////////////////////////////////
 
 
+///////////////////////////////////////////////////
+///////////////// Timer Settings /////////////////
+/////////////////////////////////////////////////
 
-////////////////////////////////////////
-//////////// Timer Settings ///////////
-//////////////////////////////////////
-
-// The numberd pattern Modes have various preprogrammed lengths
+// The numbered pattern Modes have various preprogrammed lengths
 // to match those of the Teeces Logic patterns. Some of the additional Modes 
 // have indefinite lengths.  If you want ALL pattern Modes called using the
-// Mode (T) comand to remain on indefinitely, then set 'alwaysOn' below to true. 
-// The default is false, meaning that each selected pattern Mode will remain on for 
-// its set time, and then will return to the default pattern Mode. This can also
-// be changed using command P as described on the main sketch tab.  
+// Mode (T) command to remain on, then set 'alwaysOn' below to true. 
+// The default is false, each selected pattern Mode will remain on for 
+// its set time, and then return to the default pattern (swipe) Mode. 
+// This can also ????
+// The Current Teeces interface runs at a mind numbingly slow 2400 only!
 
 bool alwaysOn = false;
+
 
 // If your JEDI Device can send at 9600 baud, uncomment this line.
 // The Current Teeces interface runs at a mindnumbingly slow 2400 only!
@@ -26,19 +27,20 @@ bool alwaysOn = false;
 //#define _9600BAUDSJEDI_
 
 
-//////////////////////////////////////////////
-//////////// SET DEFAULT PATTERN ////////////
-////////////////////////////////////////////
+///////////////////////////////////////////////////
+////////////// SET DEFAULT PATTERN ///////////////
+/////////////////////////////////////////////////
 
 // Any display Mode can be the default Mode the PSI returns to
 // after completing a command initiated Mode.  The standard default Mode
-// is Swipe.  Use this to set the default Mode number
+// is Swipe.  Use this to set the default Mode number.
 
 uint8_t defaultPattern = 1; //Mode 1 is Swipe
 
-//////////////////////////////////////////////
-//////////// SWIPE MODE SETTINGS ////////////
-////////////////////////////////////////////
+
+///////////////////////////////////////////////////
+////////////// SWIPE MODE SETTINGS ///////////////
+/////////////////////////////////////////////////
 
 // Colors are divded into Primary (Default is Blue for the 
 // front PSI and Green for the Rear) and Secondary (Default
@@ -82,7 +84,7 @@ uint8_t defaultPattern = 1; //Mode 1 is Swipe
 // Use the jumpers on the PSI CPU board to set Front colors (jumper off)
 // or Rear colors (jumper on).
 
-// Use the folloing settings to adjust the colors for font and rear.
+// Use the following settings to adjust the colors for font and rear.
 
 // Set colors for the front PSI.
                                             // Default colors
@@ -124,9 +126,9 @@ CRGB secondary_off_color() {
   }
 }
 
-//////////////////////////////////////////
-//////////// Serial SETTINGS //////////// 
-////////////////////////////////////////
+///////////////////////////////////////////////////
+//////////////// Serial SETTINGS ///////////////// 
+/////////////////////////////////////////////////
 
 // If USB_SERIAL is defined, the Serial port on the USB of the 
 // Pro Micro will be used for communication, and debug output
@@ -145,19 +147,15 @@ CRGB secondary_off_color() {
 //#define USB_SERIAL
 
 
-
-
 ///////////////////////////////////////////////////
 //////////// Assign IC2 Address Below ////////////
 /////////////////////////////////////////////////
 
 byte I2CAdress = 22;
-/////////////////////////////////////////////
-/////////////////////////////////////////////
 
 
-
-
+///////////////////////////////////////////////////
+/////////////////////////////////////////////////
 
 // This is the pin for the Brighness POT
 
@@ -174,7 +172,7 @@ byte I2CAdress = 22;
 //#define NEIL_PERSONAL_DEBUG
 #ifdef NEIL_PERSONAL_DEBUG
   #define DEBUG       // Prints Debug Strings to help debugging
-  #define USB_SERIAL   // Sets the Serial to use the USB port for sending and receiving commands instead of the TxRx on the board.
+  #define USB_SERIAL  // Sets the Serial to use the USB port for sending and receiving commands instead of the TxRx on the board.
 #endif
 // End Neil's personal setup.
 
@@ -198,23 +196,28 @@ byte I2CAdress = 22;
 #define NUM_LEDS 48
 #define LEDS_PER_COLUMN 6
 #define COLUMNS 10
-  
+ 
+// Addressible LED Array
+// -1 = no LED in that grid space
+
   int8_t ledMatrix[COLUMNS][LEDS_PER_COLUMN] = {
-    { -1, -1, 23, 24, -1, -1 }, 
-    { -1, 6, 22, 25, 41, -1 }, 
-    { 5, 7, 21, 26, 40, 42, },
-    { 4, 8, 20, 27, 39, 43, }, 
-    { 3, 9, 19, 28, 38, 44, }, 
-    { 2, 10, 18, 29, 37, 45, },
-    { 1, 11, 17, 30, 36, 46, },
-    { 0, 12, 16, 31, 35, 47, },
+    { -1, -1, 23, 24, -1, -1, },
+    { -1,  6, 22, 25, 41, -1, },
+    {  5,  7, 21, 26, 40, 42, },
+    {  4,  8, 20, 27, 39, 43, },
+    {  3,  9, 19, 28, 38, 44, },
+    {  2, 10, 18, 29, 37, 45, },
+    {  1, 11, 17, 30, 36, 46, },
+    {  0, 12, 16, 31, 35, 47, },
     { -1, 13, 15, 32, 34, -1, },
     { -1, -1, 14, 33, -1, -1, } 
   };
 
 
 // Command processing stuff
-#define CMD_MAX_LENGTH 64 // maximum number of characters in a command (63 chars since we need the null termination)
+// maximum number of characters in a command (63 chars since we need the null termination)
+#define CMD_MAX_LENGTH 64 
+
 // memory for command string processing
 char cmdString[CMD_MAX_LENGTH];
 

@@ -1,7 +1,8 @@
-//Matrices for specialized display patterns
-// Release version 1.1
+// Matrices for specialized display patterns
+// Release version 1.2
 
-const byte LetterI[] PROGMEM = //Capital Letter "I"
+// Capital Letter "I"
+const byte LetterI[] PROGMEM = 
 {
     0,1,1,1,1,0,  
   0,0,0,1,1,0,0,0,
@@ -9,10 +10,11 @@ const byte LetterI[] PROGMEM = //Capital Letter "I"
 0,0,0,0,1,1,0,0,0,0,
   0,0,0,1,1,0,0,0,  
     0,1,1,1,1,0,   
-
 };
 
-const byte Heart[] PROGMEM = //Heart Shape
+
+// Heart Shape
+const byte Heart[] PROGMEM = 
 {
     0,0,0,0,0,0,  
   0,1,1,0,0,1,1,0,
@@ -20,11 +22,11 @@ const byte Heart[] PROGMEM = //Heart Shape
 0,0,1,1,1,1,1,1,0,0,
   0,0,1,1,1,1,0,0,  
     0,0,1,1,0,0,  
- 
-
 };
 
-const byte LetterU[] PROGMEM = //Capital Letter "U"
+
+// Capital Letter "U"
+const byte LetterU[] PROGMEM = 
 {
     1,1,0,0,1,1,  
   0,1,1,0,0,1,1,0,
@@ -32,10 +34,10 @@ const byte LetterU[] PROGMEM = //Capital Letter "U"
 0,0,1,1,0,0,1,1,0,0,
   0,1,1,1,1,1,1,0,  
     0,1,1,1,1,0,   
-
 };
 
 
+// Rebel symbol
 const byte rebel[] PROGMEM = 
 {
     0,0,1,1,0,0,  
@@ -46,6 +48,8 @@ const byte rebel[] PROGMEM =
     1,1,1,1,1,1, 
 };
 
+
+// VU Meter
 const byte VUChart[] PROGMEM =
 {
     4,4,4,4,4,4,  
@@ -57,6 +61,7 @@ const byte VUChart[] PROGMEM =
 };
 
 
+// Pulse (Rear PSI)
 const byte pulse[] PROGMEM = 
 {
     0,0,0,0,0,1,      // 0-5
@@ -67,8 +72,8 @@ const byte pulse[] PROGMEM =
     0,0,1,0,0,0,      // 42-47
 };
 
-// Following are the frames for the lightsaber battle
 
+// Following are the frames for the lightsaber battle
 const byte lightsaber0[] PROGMEM = 
 {
     0,0,0,0,0,0,  
@@ -119,7 +124,6 @@ const byte lightsaber4[] PROGMEM =
     0,1,0,0,1,0, 
 };
 
-
 const byte lightsaber5[] PROGMEM = 
 {
     0,0,0,0,0,0,  
@@ -130,7 +134,6 @@ const byte lightsaber5[] PROGMEM =
     1,0,0,0,0,1, 
 };
 
-
 const byte lightsaber6[] PROGMEM = 
 {
     4,4,4,4,4,4,  
@@ -140,8 +143,6 @@ const byte lightsaber6[] PROGMEM =
   4,4,1,4,4,1,4,4,  
     1,4,4,4,4,1, 
 };
-
-
 
 const byte lightsaber7[] PROGMEM = 
 {
