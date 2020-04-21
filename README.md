@@ -1,4 +1,4 @@
-# PSIPro Version 1.1 - Released April 11th 2020
+# PSIPro Version 1.3 - Released April 11th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -12,10 +12,13 @@ Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
 
-    *  Version 1.1.01 16th April 2020
-	 *    Correct comment typos
-	 *    Always on was actually only on for 17 min. Changed to +4 hrs.
-	 *    Change Star Wars Intro
+    *  Version 1.3 - 21st April 2020
+         * Minor fix for timing in Imperial March.
+
+    *  Version 1.2 -  16th April 2020
+	 * Correct comment typos
+	 * Always on was actually only on for 17 min. Changed to +4 hrs.
+	 * Change Star Wars Intro
 		
 	*  Version 1.1 - 13th April 2020
      * Fixed a bug in the Rebel pattern where it would blink the first time a timing command was given

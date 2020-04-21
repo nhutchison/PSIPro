@@ -11,11 +11,15 @@
  *    
  *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
- *  Version 1.2
+ *  Version 1.3
  *
  *  Version History :
  *  
- *  Version 1.2 16th April 2020
+ *  Version 1.3 - 21st April 2020
+ *  
+ *    Fixed a bug with the timing for Imperial March
+ *  
+ *  Version 1.2 - 16th April 2020
  *  
  *    Correct comment typos
  *    Always on was actually only on for 17 min. Changed to +18 hrs.
@@ -1399,7 +1403,7 @@ void march(CRGB color, unsigned long time_delay, int loops, unsigned long runtim
   if ((runtime == 0) && (!timingReceived)){
     // Check to see if we have run the loops needed for this pattern
     loopsDonedoRestoreDefault();
-  } else if (timingReceived) {
+  } else {
     // Check for the global timeout to have expired.
     globalTimerDonedoRestoreDefault();
   }
