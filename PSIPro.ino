@@ -11,9 +11,14 @@
  *    
  *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
- *  Version 1.3
+ *  Version 1.4
  *
  *  Version History :
+ *  
+ *  Version 1.4 - 13th May 2020
+ *  
+ *  Adding a check in the T command processing to prevent setting the global timing parameters if
+ *  the command is not addressed to a PSI (address 0, 4,5)
  *  
  *  Version 1.3 - 21st April 2020
  *  
@@ -2422,6 +2427,14 @@ void doTcommand(int address, int argument, int timing)
     DEBUG_PRINT_LN(timing); 
   }
   */
+
+  // If the command is not directed at a PSI, then we should just return and do nothing.
+  // This prevents overriding any timing parameters that may be in use, for an invalid
+  // command.
+  if ((address != 0) && (address != 4) && (address != 5))
+  {
+    return;
+  }
 
   if (timing != 0){
     DEBUG_PRINT_LN("Timing Value received in command");

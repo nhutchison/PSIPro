@@ -1,4 +1,4 @@
-# PSIPro Version 1.3 - Released April 11th 2020
+# PSIPro Version 1.4 - Released May 13th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -11,6 +11,10 @@ Pattern Timing Tuning by Malcolm MacKenzie
 Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
+
+    *  Version 1.4 - 13th May 2020
+         * Added a check in the T command processing to prevent settig the global timing parameters
+           if the command is not addressed to a PSI (address 0,4,5)
 
     *  Version 1.3 - 21st April 2020
          * Minor fix for timing in Imperial March.
