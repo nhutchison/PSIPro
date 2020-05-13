@@ -11,11 +11,11 @@
  *    
  *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
- *  Version 1.4
+ *  Version 1.5
  *
  *  Version History :
  *  
- *  Version 1.4 - 13th May 2020
+ *  Version 1.5 - 13th May 2020
  *  
  *  Adding a check in the T command processing to prevent setting the global timing parameters if
  *  the command is not addressed to a PSI (address 0, 4,5)
@@ -2431,7 +2431,9 @@ void doTcommand(int address, int argument, int timing)
   // If the command is not directed at a PSI, then we should just return and do nothing.
   // This prevents overriding any timing parameters that may be in use, for an invalid
   // command.
-  if ((address != 0) && (address != 4) && (address != 5))
+  if ((address != 0) && 
+      ((digitalRead(JUMP_FRONT_REAR)) && (address != 4)) && 
+      ((!digitalRead(JUMP_FRONT_REAR)) && (address != 5)))
   {
     return;
   }

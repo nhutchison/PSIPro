@@ -12,7 +12,7 @@ Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
 
-    *  Version 1.4 - 13th May 2020
+    *  Version 1.5 - 13th May 2020
          * Added a check in the T command processing to prevent settig the global timing parameters
            if the command is not addressed to a PSI (address 0,4,5)
 
