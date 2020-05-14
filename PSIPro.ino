@@ -11,9 +11,15 @@
  *    
  *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
- *  Version 1.5
+ *  Version 1.6
  *
  *  Version History :
+ *  
+ *  Version 1.6 - 14th May 2020
+ *  
+ *  Fixes for the Valid PSI address checks in the T command
+ *  Check for a valid pattern number, and ignore if the pattern does not match a known pattern.
+ *    Continue running the current pattern with the current timings.
  *  
  *  Version 1.5 - 13th May 2020
  *  
@@ -2106,6 +2112,9 @@ void globalTimerDonedoRestoreDefault()
 // so we avoid the need to duplicate this code.
 void runPattern(int pattern) {
 
+  // Used to restore state if an invalid pattern code is received.
+  int currentPattern = lastPSIeventCode;
+  
   if (lastPSIeventCode != pattern)
   {
     lastPSIeventCode = pattern;
@@ -2200,7 +2209,10 @@ void runPattern(int pattern) {
       VUMeter(250, 0, 0);
       break;
     default:
-      // Do nothing
+      // Reset back to the state before calling this function
+      DEBUG_PRINT("Pattern "); DEBUG_PRINT(pattern); DEBUG_PRINT_LN(" not valid.  Ignoring");
+      lastPSIeventCode = currentPattern;
+      firstTime = false;
       break;
   }
 }
@@ -2431,10 +2443,11 @@ void doTcommand(int address, int argument, int timing)
   // If the command is not directed at a PSI, then we should just return and do nothing.
   // This prevents overriding any timing parameters that may be in use, for an invalid
   // command.
-  if ((address != 0) && 
-      ((digitalRead(JUMP_FRONT_REAR)) && (address != 4)) && 
-      ((!digitalRead(JUMP_FRONT_REAR)) && (address != 5)))
+  if (!((address == 0) || 
+      ((digitalRead(JUMP_FRONT_REAR)) && (address == 4)) || 
+      ((!digitalRead(JUMP_FRONT_REAR)) && (address == 5))))
   {
+    DEBUG_PRINT("Address "); DEBUG_PRINT(address); DEBUG_PRINT_LN(" not a valid PSI.  Ignoring");
     return;
   }
 

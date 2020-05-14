@@ -1,4 +1,4 @@
-# PSIPro Version 1.4 - Released May 13th 2020
+# PSIPro Version 1.6 - Released May 13th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -11,6 +11,11 @@ Pattern Timing Tuning by Malcolm MacKenzie
 Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
 ## Version History
+
+    *  Version 1.6 - 14th May 2020
+         * Fixes for the Valid PSI address checks in the T command
+         *  Check for a valid pattern number, and ignore if the pattern does not match a known pattern.
+              Continue running the current pattern with the current timings.
 
     *  Version 1.5 - 13th May 2020
          * Added a check in the T command processing to prevent settig the global timing parameters
