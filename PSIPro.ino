@@ -280,7 +280,9 @@
 #include <EEPROM.h>
 #include "matrices.h"
 #include "config.h"
+#if USE_I2C
 #include "Wire.h"
+#endif
 
 // Setup the LED Matrix
 CRGB leds[NUM_LEDS];
@@ -339,16 +341,6 @@ unsigned long swipeDelay = 0;
 unsigned long lastLedUpdate = 0;
 CRGB overlayColors[COLUMNS];
 
-// function prototype for the Matrix Display.  This is doing cleverness.  Don't change it!
-void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool displayMe, unsigned long timeout, 
-                        CRGB color2=0x000000, CRGB color3=0x000000, CRGB color4=0x000000, CRGB color5=0x000000,
-                        CRGB color6=0x000000, CRGB color7=0x000000, CRGB color8=0x000000);
-
-// Function prototype for helper functions
-void fill_row(uint8_t row, CRGB color, uint8_t scale_brightness=0);
-void fill_column(uint8_t column, CRGB color, uint8_t scale_brightness=0);
-void allOFF(bool showLED, unsigned long runtime=0);
-void allON(CRGB color, bool showLED, unsigned long runtime=0);
 
 // Setup
 void setup() {
@@ -360,9 +352,11 @@ void setup() {
   //Sets the default brightness, this reads from the POT and sets the value
   FastLED.setBrightness(brightness());
 
+#if USE_I2C
   //  Setup I2C
   Wire.begin(I2CAdress);                   // Start I2C Bus as Master I2C Address
   Wire.onReceive(receiveEvent);            // register event so when we receive something we jump to receiveEvent();
+#endif
 
   // Setup the Serial for debug and command input
   // initialize suart used to communicate with the JEDI Display at 2400 or 9600 bauds
@@ -435,7 +429,7 @@ void loop()
     }
     else
     {
-      lastPSIeventCode == defaultPattern;
+      lastPSIeventCode = defaultPattern;
       runPattern(lastPSIeventCode);
     }
 
@@ -979,7 +973,7 @@ void scanColLeftRight(unsigned long time_delay, int start_row, CRGB color, bool 
 // Display a matrix using the byte array.  Colours are defined so that
 // if the matrix has a 1, we use fgcolor, and 0 is bgcolor.
 // Optionally colors 2,3,4,5,6,7,8 (allowing a total of nine colours to be used in a pattern.
-void displayMatrixColor(byte PROGMEM * matrix, CRGB fgcolor, CRGB bgcolor, bool displayMe, unsigned long runtime, 
+void displayMatrixColor(const byte* matrix, CRGB fgcolor, CRGB bgcolor, bool displayMe, unsigned long runtime, 
                         CRGB color2=0x000000, CRGB color3=0x000000, CRGB color4=0x000000, CRGB color5=0x000000,
                         CRGB color6=0x000000, CRGB color7=0x000000, CRGB color8=0x000000)
 {
@@ -1546,8 +1540,8 @@ void swipe() {
               overlayColors[i] = i > COLUMNS - SECONDARY_PARTIAL_OFF_LINES - 1 ? secondary_color() : secondary_off_color();
             }
           }
-
           // Intentional fall through
+          FALL_THROUGH()
         }
       case PrimaryToSecondary:
         visibleSecondaryColumns++;
@@ -1564,6 +1558,7 @@ void swipe() {
           swipeDelay = random(SWIPE_DELAY_MINIMUM, SWIPE_DELAY_MAXIMUM);
           DEBUG_PRINT_LN("Switching to primary color");
           // Intentional fall through
+          FALL_THROUGH()
         }
       case SecondaryToPrimary:
         visibleSecondaryColumns--;
@@ -2217,6 +2212,7 @@ void runPattern(int pattern) {
   }
 }
 
+#if USE_I2C
 // function that executes whenever data is received from an I2C master
 // this function is registered as an event, see setup()
 void receiveEvent(int eventCode) {
@@ -2238,7 +2234,7 @@ void receiveEvent(int eventCode) {
     } 
   }
 }
-
+#endif
 
 /*
    SerialEvent occurs whenever a new data comes in the
@@ -2333,7 +2329,7 @@ void parseCommand(char* inputStr)
   //DEBUG_PRINT_LN(address);
   
   // check for more
-  if(!length>pos) goto beep;            // invalid, no command after address
+  if(length<=pos) goto beep;            // invalid, no command after address
   
   // special case of M commands, which take a string argument
   // Not currently implemented!!!!!
@@ -2348,7 +2344,7 @@ void parseCommand(char* inputStr)
   // other commands, get the numerical argument after the command character
 
   pos++;                             // need to increment in order to peek ahead of command char
-  if(!length>pos) {hasArgument=false; hasTiming=false;}// end of string reached, no arguments
+  if(length<=pos) {hasArgument=false; hasTiming=false;}// end of string reached, no arguments
   else
   {
     for(byte i=pos; i<length; i++)
@@ -2482,6 +2478,8 @@ void doTcommand(int address, int argument, int timing)
 
 void doDcommand(int address)
 {
+  // Ignore the argument
+  UNUSED(address)
   /*
   DEBUG_PRINT_LN();
   DEBUG_PRINT("Command: D ");

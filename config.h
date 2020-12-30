@@ -98,7 +98,11 @@ CRGB rearPrimaryColor = CRGB(0, 255, 0);      // Green  (0, 255, 0)
 CRGB rearSecondaryColor = CRGB(200, 170, 0);  // Yellow (200, 170, 0)
 CRGB rearSecondaryOffColor = CRGB::Black;     // Off Black
 
+#if defined(ARDUINO_AVR_PRO)
+#define JUMP_FRONT_REAR 12
+#else
 #define JUMP_FRONT_REAR 14
+#endif
 
 // Set the colors based on the pin being jumpered to ground.
 
@@ -145,22 +149,31 @@ CRGB secondary_off_color() {
 // the sketch uses Serial and not Serial1 for communication.  
 
 //#define USB_SERIAL
-
+#if defined(ARDUINO_AVR_PRO) && !defined(USB_SERIAL)
+#define USB_SERIAL
+#endif
 
 ///////////////////////////////////////////////////
 //////////// Assign IC2 Address Below ////////////
 /////////////////////////////////////////////////
 
+#if !defined(ARDUINO_AVR_PRO)
+#define USE_I2C 1
 byte I2CAdress = 22;
-
+#else
+#define USE_I2C 0
+#endif
 
 ///////////////////////////////////////////////////
 /////////////////////////////////////////////////
 
 // This is the pin for the Brighness POT
 
+#if defined(ARDUINO_AVR_PRO)
+#define POT_BRIGHT_PIN A1
+#else
 #define POT_BRIGHT_PIN 19
-
+#endif
 
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -191,6 +204,9 @@ byte I2CAdress = 22;
   #define DEBUG_PRINT_LN(msg)
   #define DEBUG_PRINT(msg)
 #endif // DEBUG
+
+#define UNUSED(a) (void)(a);
+#define FALL_THROUGH() __attribute__((fallthrough));
 
 #define LED_PIN 4
 #define NUM_LEDS 48
