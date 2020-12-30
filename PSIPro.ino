@@ -3,6 +3,7 @@
  *  Written by Neil Hutchison
  *  Main sequence transitions by Krijn Schaap, based on his PSI sketch.  Many thanks Krijn.
  *  Pattern Timing Tuning by Malcolm MacKenzie
+ *  Bug fixes and Mini support by Skelmir
  *  
  *
  *  Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
@@ -11,9 +12,15 @@
  *    
  *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h and matrices.h files are in the skectch folder. 
  *
- *  Version 1.6
+ *  Version 1.7
  *
  *  Version History :
+ *  
+ *  Version 1.7 - 30th Dec 2020
+ *  
+ *  Fix a bug in the main loop restoring the default pattern
+ *  Remove compiler warnings
+ *  Support for Mini added.
  *  
  *  Version 1.6 - 14th May 2020
  *  

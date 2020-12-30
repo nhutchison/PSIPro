@@ -1,4 +1,4 @@
-# PSIPro Version 1.6 - Released May 13th 2020
+# PSIPro Version 1.7 - Released December 30th 2020
 
 ## Author
 Written by Neil Hutchison
@@ -10,7 +10,14 @@ Pattern Timing Tuning by Malcolm MacKenzie
 
 Thanks to Malcolm (Maxstang) for the boards, support, testing and encouragement.
 
+Thanks to Skelmir for bix fixes and the addition of support for a Mini
+
 ## Version History
+
+    *  Version 1.7
+         * Bug fix for restoring the default pattern.
+         * Remove compiler warnings.
+         * Support for Mini added.
 
     *  Version 1.6 - 14th May 2020
          * Fixes for the Valid PSI address checks in the T command
